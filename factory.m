@@ -54,24 +54,15 @@ end
 correction_img_array = zeros(1,3);
 for image_nbr = 1:3
     firstpic_name = fullfile(picFolder, picFiles(image_nbr).name);                  % Getting current file in directory
-
     first_img = imread(firstpic_name);                                      % Load  IMG
-
-
     for rotations = 1:img_rotation                                          % Rotate img n times (clockwise)
         first_img = imrotate(first_img,-90,'bilinear'); 
     end
-    
     gray_im = rgb2gray(first_img);                                          % Convert from rgb image to graysacale
-
     diff_im = imbinarize(gray_im,c_pond);                                   % Gray ponderation
-
     diff_im = bwareaopen(diff_im,5);                                        % Min. size of object
-
     logical_map = logical(diff_im);                                         % Convert to logical
-
     stats = regionprops(logical_map, 'BoundingBox', 'Centroid');
-
 
     % Nota Bene: stats are sortet by bounding box on X axe
     correction_array = zeros(1,laser_correction_object_no);                 % initializing array where different angles will be stored
