@@ -1,5 +1,4 @@
 ----UPDATE LOG----
-TODO: cutter on all 4 sides
 
 #Version 11:
 removed option to select number of strips set it default to 1px size

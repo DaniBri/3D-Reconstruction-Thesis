@@ -14,8 +14,6 @@ function z_matrix = cutter(original_matrix, ground_limit)
 %
 %   Author: Daniel Briguet, 04-07-2018
 
-
-
 % getting corner position of object in matrix
 % what has been seen by camera
 x_start = 0;

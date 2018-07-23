@@ -1,5 +1,5 @@
 function z_matrix = factory(picFormat, c_pond, ...
-    activate_smooth, ... 
+    activate_smooth, filling_method, ... 
     smooth_factor, folder_name,inverse_hight, ...
     ground_hight_factor, img_rotation, limiter_ponderation, ...
     limiter_area, limiter_status)
@@ -7,7 +7,7 @@ function z_matrix = factory(picFormat, c_pond, ...
 %	Folder containing images is passed down as parameter
 % 	same goes for a lot of other factors.
 %	Images in folder need to be stored in chronological order.
-%   'NEAREST' is used for the reconstruction of missing values.
+%   Parameter filling_method is used for the reconstruction of missing values.
 %
 %   Example:
 %     factory(...)
@@ -125,9 +125,9 @@ end
 % Reconstruct if there are some Values missing in table
 
 z_matrix = rot90(z_matrix,1);
-z_matrix = fillmissing(z_matrix,'nearest'); % replaces NaN values
+z_matrix = fillmissing(z_matrix,filling_method); % replaces NaN values
 z_matrix = rot90(z_matrix,3);
-z_matrix = fillmissing(z_matrix,'nearest'); %Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
+z_matrix = fillmissing(z_matrix,filling_method); %Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
 
 %% Smoothing
 if(activate_smooth ~= 0)
@@ -182,7 +182,3 @@ h=histogram(z_matrix(:),ground_hight_factor);
 [~,I] = max(h.Values);
 ground_limit = h.BinEdges(I+1);
 z_matrix = cutter(z_matrix, ground_limit);
-
-%% Remove border suplement
-removing = 0;
-z_matrix = z_matrix(1+removing:end-removing,1+removing:end-removing);
