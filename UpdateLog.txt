@@ -1,11 +1,13 @@
 ----UPDATE LOG----
-TODO: FIX THAT FUCKING LIMITER!!!!!
+TODO: cutter on all 4 sides
 
 #Version 11:
 removed option to select number of strips set it default to 1px size
 version 10 took 390sec with stripsize of 1 px removed it's object dedection and created finder function
 now version 11 takes 41sec to find all objects with stripsize of 1px
 Added a medianfilter to limiter to help him out
+renaming some classes to make more sense
+finder function finished
 
 #Version 10:
 grayscaling full image befor cutting into strips

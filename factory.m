@@ -1,152 +1,188 @@
-imtool close all;
-close all;
-clc;
-clear;
-% The Factory is the base of the reconstructionscrypt.
-%   In here it is possible to change all the settings, alowing to work with
-%   the quality of the reconstruction and to adapt to different pictures.
-%   At the end it gives out a STL File according to all the Picture located
-%   in a given folder.
+function z_matrix = factory(picFormat, c_pond, ...
+    activate_smooth, ... 
+    smooth_factor, folder_name,inverse_hight, ...
+    ground_hight_factor, img_rotation, limiter_ponderation, ...
+    limiter_area, limiter_status)
+% FACTORY returns z_matrix of the different points from all images
+%	Folder containing images is passed down as parameter
+% 	same goes for a lot of other factors.
+%	Images in folder need to be stored in chronological order.
+%   'NEAREST' is used for the reconstruction of missing values.
+%
+%   Example:
+%     factory(...)
 %
 %   Author: Daniel Briguet, 18-06-2018
 
-%% Settings
-picFormat = 'jpg';
-folder_name = '\sequenz2';                         % name of folder wher images are stored in
-color_ponderation = 0.9;
+%% Setting Configurations
+picFolder = strcat(pwd, folder_name);      % Folder that holds all the IMGs from CMOS
+laser_correction_object_no = 20;                                                                % Number of object jused to find out angle correction
 
-activate_smooth = 1;                               % Turn on or off
-smooth_factor = 0.0001;                            % Smooth factor carefull the higher slows down processing speed exponentailly
+%% Loading IMG from Directory
+% Check if folder does exist 
+if ~isdir(picFolder)
+    error('Error, The following directory does not exist: \n%s', picFolder);
+end
 
-limiter_status = 1;                                % recomended to use with high no of strips. else not needed and also gives bad result
-limiter_ponderation = 0.1;                           % how many time the other value can be the current values size
-limiter_area = 5;                                  % Size of cross area that spike must at least have
+% Load the files in folder
+filePattern = fullfile(picFolder, strcat('*.', picFormat));
+picFiles = dir(filePattern);
+no_of_img = length(picFiles);                                               % Get number of IMGs taken by CMOS
 
-use_checkerboeard = 0;                             % if not camera parameters are used Turn on or off
-size_of_checkerboard_square = 14;                  % Size of 1 square from checkerboeard for calibration
-pixel_size = 2.2;                                  % [um] if unknown = 0;
-imager_size = 5.7;                                 % [mm] ONLY used when pixel size unknown
-active_pixels = 2592;                              % Nbr of pixels from sensor ONLY used when pixel size unknown
+if(no_of_img == 0)
+    error('Error, no images found in folder');
+end
 
-motor_alim = 2;                                  % [V] voltage given to motor
-motor_axis_dia = 6;                                % [mm] diameter where cable is wraped around
-motor_poly = [0.0201 0.5978 0.2827];                % p(x) = [ax^2+bx+c]
+%% Removing unusable Images
+for current_img_no = 1:no_of_img                                            % Go through all the IMGs in directory
+    fullFileName = fullfile(picFolder, picFiles(current_img_no).name);      % Getting current file in directory
+    current_img = imread(fullFileName);                                     % Load current IMG
+    gray_im = rgb2gray(current_img);    
+    diff_im = imbinarize(gray_im,c_pond);                                   % Gray ponderation
+    diff_im = bwareaopen(diff_im,5);                                        % Min. size of object
+    logical_map = logical(diff_im);                                         % Convert to logical
+    stats = regionprops(logical_map, 'BoundingBox', 'Centroid');
+        if(length(stats) < laser_correction_object_no)                      % Check if there are more then n objects found on image
+            delete(fullFileName)
+        else
+            break;                                                          % Start of model found no more img should be deleted
+        end
+end
 
-angle_laser = 15;                                  % Angle laser has to the lense axe
-scale = 1;                                         % Resize facotr of model
+%% Check laser angle
+% use first 3 image to define angle correction
+correction_img_array = zeros(1,3);
+for image_nbr = 1:3
+    firstpic_name = fullfile(picFolder, picFiles(image_nbr).name);                  % Getting current file in directory
 
-inverse_hight = 1;                                 % if model is upside down
-inverse_Y_axis = 1;                                % switches left and right / turning model 180%
+    first_img = imread(firstpic_name);                                      % Load  IMG
 
-ground_hight_factor = 25;                          % in how many slices hight is cut and ground will be removed from where most points are
-camera_fps = 7;                                  % Frames per second of camera
 
-img_rotation = 0;                                  % Number of rotation of images by 90° clockwise
-
-%% Calibration Setup
-tic;                                               % Starting stopwatch
-if(use_checkerboeard ~= 0)
-    calibFolder = strcat(pwd, '\calibration_pic');
-    if ~isdir(calibFolder)
-        error('Error, The following directory does not exist: \n%s', calibFolder);
+    for rotations = 1:img_rotation                                          % Rotate img n times (clockwise)
+        first_img = imrotate(first_img,-90,'bilinear'); 
     end
-    calibration_filename = fullfile(calibFolder, '*.jpg');                                % getting current file directory
-    picFiles = dir(calibration_filename);
-    fullFileName = fullfile(calibFolder, picFiles(1).name);      % Getting current file in directory
-    relation_px_mm = calibration(size_of_checkerboard_square,fullFileName);                 % [mm/px]
-else
-    if(pixel_size ~= 0)
-        relation_px_mm = pixel_size/1000;
-    else
-        relation_px_mm = imager_size/active_pixels;
+    
+    gray_im = rgb2gray(first_img);                                          % Convert from rgb image to graysacale
+
+    diff_im = imbinarize(gray_im,c_pond);                                   % Gray ponderation
+
+    diff_im = bwareaopen(diff_im,5);                                        % Min. size of object
+
+    logical_map = logical(diff_im);                                         % Convert to logical
+
+    stats = regionprops(logical_map, 'BoundingBox', 'Centroid');
+
+
+    % Nota Bene: stats are sortet by bounding box on X axe
+    correction_array = zeros(1,laser_correction_object_no);                 % initializing array where different angles will be stored
+    for i = 1:laser_correction_object_no
+        laser_diff_hight = stats(i).Centroid(2) - stats(length(stats)-i+1).Centroid(2); % get hight difference of two opposit dedected points
+        laser_diff_length = stats(i).Centroid(1) - stats(length(stats)-i+1).Centroid(1);% get length difference of two opposit dedected points
+        laser_correction_angle = atan(laser_diff_hight/laser_diff_length);    % calc angle
+        laser_correction_angle = laser_correction_angle * 180 / pi;                     % convert to degree
+        correction_array(i) = laser_correction_angle;                                   % store it
+    end
+    correction_img_array(image_nbr) = mean(correction_array);                            % use the mean of all the different angles calculated
+end
+laser_correction_angle = mean(correction_img_array);
+
+
+%% Processing Images    
+for current_img_no = 1:no_of_img                                            % Go through all the IMGs in directory
+    %loading in current img and correcting rotation
+	fullFileName = fullfile(picFolder, picFiles(current_img_no).name);      % Getting current file in directory
+    current_img = imread(fullFileName);                                     % Load current IMG
+    for rotations = 1:img_rotation                                          % Rotate image if user asked for
+        current_img = imrotate(current_img,-90,'bilinear'); 
+    end
+    current_img = imrotate(current_img,laser_correction_angle,'bilinear');  % use laser angle correction if laser wasn't horizontal
+    
+	img_y_length = size(current_img,1);                                     % Get hight of IMG
+    no_of_strips = size(current_img,2);										% Get width of IMG
+	
+	% Initialize z_matrix, only done once, this is done in for loop to know the dimensions of images
+    if(current_img_no == 1)             
+        z_matrix = NaN(no_of_strips,no_of_img); 
+    end
+	
+    gray_im = rgb2gray(current_img);                                        % Convert from rgb to grayscale
+    diff_im = imbinarize(gray_im,c_pond);                                   % Brightnes ponderation
+    for current_strip = 1:no_of_strips                                  % Go through all slices of an IMG
+        map_strip = diff_im(1:img_y_length,current_strip:current_strip);% Load strip of current IMG
+        z_matrix(current_strip,current_img_no) = finder(map_strip);
     end
 end
-disp('-Calibration done');
-toc                                                 % End stopwatch and give time
-disp('-----------------');
-tic
-%% Get Z_matrix
-% Transmit settings and run scanning reconstruction
-z_matrix = calc3d(picFormat, color_ponderation, ...
-    activate_smooth, ...
-    smooth_factor, folder_name, inverse_hight, ...
-    ground_hight_factor, img_rotation, limiter_ponderation, ...
-    limiter_area, limiter_status);
-    no_of_img = size(z_matrix,2);
-    img_width = size(z_matrix,1);                  % not actual img width but how many pixel large the scan on img was
-disp('-Image Processing done');
-toc                                                
-disp('-----------------');
-tic
-
-%% Z_MATRIX correction
-% Hight = length/tan(angle)
-angle_laser = angle_laser*pi/180;                                             % Converting degree to rad
-corrector_h = tan(angle_laser);                                               % in px
-z_matrix = relation_px_mm*z_matrix/corrector_h;
-%% X_MATRIX correction
-% Speed calculation
-
-rpm = polyval(motor_poly,motor_alim);                                           % base funktion found by measurment
-rps = rpm / 60;                                                             % rotation per second
-circumference_axe = motor_axis_dia*pi;                                      % circumferance of motor axe
-conveyor_speed = circumference_axe*rps ;                                    % [mm/s]
-% Belt Speed and IMG No.
-% Example: object is 14 pic large. Camera is 7 FPS. Belt moves 1m/s. means
-% object is exactly 2m long
-real_length = (no_of_img/camera_fps)* conveyor_speed;
-%% Y_MATRIX correction
-% nothing to do cause object should be at least as large as image that was
-% taken
-real_width = img_width*relation_px_mm;
-%% Creation Y-X_Matrixes & px to mm
-% model length doesn't need to be converted from px to mm cause it has
-% already been converted from img number to mm
-
-x_matrix = linspace(0,real_length,no_of_img);
-x_matrix = imresize(x_matrix, [img_width no_of_img], 'nearest');  %adapt size
-y_matrix = linspace(0,real_width,img_width);
-y_matrix = y_matrix.';                              % transpose matrix
-y_matrix = imresize(y_matrix, [img_width no_of_img], 'nearest');  %adapt size
-if(inverse_Y_axis ~= 0)
-    y_matrix = real_width-y_matrix;
+if(inverse_hight ~= 0)
+   z_matrix = max(max(z_matrix))- z_matrix;
 end
-disp('-Creation & Correction of matrixes done');
-toc
-disp('-----------------');
-tic
 
-%% Making patch struct
-solid = surf2solid(x_matrix,y_matrix,z_matrix,'ELEVATION',0);
-disp('-Conversion to solid done');
-toc
-disp('-----------------');
-tic
+%% Remove isolatet points
+if(limiter_status~=0)
+    z_matrix = limiter(z_matrix, limiter_ponderation, limiter_area);
+end
 
-%% Resized struct
-Model_scaled = solid;
-Model_scaled.vertices = Model_scaled.vertices*scale;
-%% Make STL file
-[Model_scaled.vertices, ~, indexn] =  unique(Model_scaled.vertices, 'rows');
-Model_scaled.faces = indexn(Model_scaled.faces);
-stlwrite('model_reduc.stl',Model_scaled);
-% display stl
-figure;
-patch(Model_scaled,'FaceColor',       [0.8 0.8 1.0], ...
-         'EdgeColor',       'none',        ...
-         'FaceLighting',    'gouraud',     ...
-         'AmbientStrength', 0.15);
+%% Reconstruct Errors for every IMG 
+% Reconstruct if there are some Values missing in table
 
-% Add a camera light, and tone down the specular highlighting
-camlight('headlight');
-material('dull');
+z_matrix = rot90(z_matrix,1);
+z_matrix = fillmissing(z_matrix,'nearest'); % replaces NaN values
+z_matrix = rot90(z_matrix,3);
+z_matrix = fillmissing(z_matrix,'nearest'); %Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
 
-% Fix the axes scaling, and set a nice view angle
-view([-135 35]);
+%% Smoothing
+if(activate_smooth ~= 0)
+    temp1 = size(z_matrix,1);
+    temp2 = size(z_matrix,2);
+    z_matrix = smooth(z_matrix(:,:),smooth_factor,'moving');                 % Smoothing out values takes up to 3 min
+    % moving, lowess, loess, sgolay, rlowess, rloess
+    z_matrix = reshape(z_matrix,temp1,temp2);             % Smoothing transformed matrix to array... reconstruct it
+end
+z_matrix(z_matrix < 0) = 0;
 
-axis('image');
-disp('-STL done');
-toc
-disp('-----------------');
-%% TODO
-% polyval polyfit
+%% Removin diagonal on ground
+% Mak diff of ground hight at start and end of scan for every value then 
+% correct the hight in a linear way / fixing diagonal of scan on length
+% axcis of model
+
+% going past every row
+correction_array = zeros(1,4);                 % initializing array where different angles will be stored
+for row = 1:size(z_matrix,1)
+    
+    
+    for i = 0:4
+        diff_max = z_matrix(row,1+i) - z_matrix(row,size(z_matrix,2)-i); %z_matrix(row,column)
+        correction_array(i+1) = diff_max;                                   % store it
+    end
+    
+    % use the mean of all the different angles calculated
+    diff_max = mean(correction_array);
+    diff_step = diff_max/size(z_matrix,2);
+    
+    % update every single value of row
+    for column = 1:size(z_matrix,2)-1
+        z_matrix(row,size(z_matrix,2)-column) = z_matrix(row,size(z_matrix,2)-column) - diff_step*column;
+    end
+    
+    % bring object to ground again if diff was negativ value
+    if(mean(z_matrix(:,1)) < mean(z_matrix(:,(size(z_matrix,2)))))
+        z_matrix = z_matrix - diff_max;
+    end
+end
+
+%% Put object to ground
+h=histogram(z_matrix(:),ground_hight_factor);
+[~,I] = max(h.Values);
+ground_limit = h.BinEdges(I+1);
+z_matrix = z_matrix - ground_limit;
+z_matrix(z_matrix < 0) = 0;
+
+%% Cutting exessiv border from z_matrix
+% Cut of border so there are only that many rows & colums with NAN
+h=histogram(z_matrix(:),ground_hight_factor);
+[~,I] = max(h.Values);
+ground_limit = h.BinEdges(I+1);
+z_matrix = cutter(z_matrix, ground_limit);
+
+%% Remove border suplement
+removing = 0;
+z_matrix = z_matrix(1+removing:end-removing,1+removing:end-removing);
