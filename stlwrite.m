@@ -126,7 +126,6 @@ end
 
 % Close the file
 fclose(fid);
-fprintf('Wrote %d faces\n',size(faces, 2));
 
 
 %% Input handling subfunctions

@@ -1,16 +1,17 @@
-function z_matrix = factory(picFormat, c_pond, ...
-    activate_smooth, filling_method, ... 
-    smooth_factor, folder_name,inverse_hight, ...
-    ground_hight_factor, img_rotation, limiter_ponderation, ...
-    limiter_area, limiter_status)
-% FACTORY returns z_matrix of the different points from all images
-%	Folder containing images is passed down as parameter
+function z_matrix = factory(picFormat,  folder_name, ...
+        img_rotation, activate_smooth, smooth_factor, ... 
+        contrast_logical, inverse_height, ground_height_factor, ...
+        filling_method, limiter_ponderation, limiter_area, limiter_status)
+%   FACTORY returns a 2D matrix 
+%   This matrix contains the height from the points from which the lane on
+%   each image consists of.
+%	The folder name containing image sequence is passed down as parameter
 % 	same goes for a lot of other factors.
 %	Images in folder need to be stored in chronological order.
 %   Parameter filling_method is used for the reconstruction of missing values.
 %
 %   Example:
-%     factory(...)
+%     factory('jpg', 0.5, 1, 'linear', 0.001, 'mySequenze', 0, 30, 0, 0.5, 4, 1)
 %
 %   Author: Daniel Briguet, 18-06-2018
 
@@ -38,7 +39,7 @@ for current_img_no = 1:no_of_img                                            % Go
     fullFileName = fullfile(picFolder, picFiles(current_img_no).name);      % Getting current file in directory
     current_img = imread(fullFileName);                                     % Load current IMG
     gray_im = rgb2gray(current_img);    
-    diff_im = imbinarize(gray_im,c_pond);                                   % Gray ponderation
+    diff_im = imbinarize(gray_im,contrast_logical);                                   % Gray ponderation
     diff_im = bwareaopen(diff_im,5);                                        % Min. size of object
     logical_map = logical(diff_im);                                         % Convert to logical
     stats = regionprops(logical_map, 'BoundingBox', 'Centroid');
@@ -59,7 +60,7 @@ for image_nbr = 1:3
         first_img = imrotate(first_img,-90,'bilinear'); 
     end
     gray_im = rgb2gray(first_img);                                          % Convert from rgb image to graysacale
-    diff_im = imbinarize(gray_im,c_pond);                                   % Gray ponderation
+    diff_im = imbinarize(gray_im,contrast_logical);                                   % Gray ponderation
     diff_im = bwareaopen(diff_im,5);                                        % Min. size of object
     logical_map = logical(diff_im);                                         % Convert to logical
     stats = regionprops(logical_map, 'BoundingBox', 'Centroid');
@@ -97,13 +98,13 @@ for current_img_no = 1:no_of_img                                            % Go
     end
 	
     gray_im = rgb2gray(current_img);                                        % Convert from rgb to grayscale
-    diff_im = imbinarize(gray_im,c_pond);                                   % Brightnes ponderation
+    diff_im = imbinarize(gray_im,contrast_logical);                                   % Brightnes ponderation
     for current_strip = 1:no_of_strips                                  % Go through all slices of an IMG
         map_strip = diff_im(1:img_y_length,current_strip:current_strip);% Load strip of current IMG
         z_matrix(current_strip,current_img_no) = finder(map_strip);
     end
 end
-if(inverse_hight ~= 0)
+if(inverse_height ~= 0)
    z_matrix = max(max(z_matrix))- z_matrix;
 end
 
@@ -161,7 +162,7 @@ for row = 1:size(z_matrix,1)
 end
 
 %% Put object to ground
-h=histogram(z_matrix(:),ground_hight_factor);
+h=histogram(z_matrix(:),ground_height_factor);
 [~,I] = max(h.Values);
 ground_limit = h.BinEdges(I+1);
 z_matrix = z_matrix - ground_limit;
@@ -169,7 +170,7 @@ z_matrix(z_matrix < 0) = 0;
 
 %% Cutting exessiv border from z_matrix
 % Cut of border so there are only that many rows & colums with NAN
-h=histogram(z_matrix(:),ground_hight_factor);
+h=histogram(z_matrix(:),ground_height_factor);
 [~,I] = max(h.Values);
 ground_limit = h.BinEdges(I+1);
 z_matrix = cutter(z_matrix, ground_limit);
