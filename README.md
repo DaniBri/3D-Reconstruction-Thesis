@@ -21,7 +21,7 @@ To run these Matlab scripts following add-ons are required
 Special thanks to the following people for helping me realize this project:
 * Djano Kandaswamy, responsible professor, HEVs
 * Bernard Loehr, expert, HE-ARC
-* onathan Michel, student & colleague, HEVs
+* Jonathan Michel, student & colleague, HEVs
 
 Following functions were given by following people:
 * Function: surf2solid.m	Author: Sven Holcombe
