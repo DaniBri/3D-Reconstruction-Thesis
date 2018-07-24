@@ -3,7 +3,7 @@ The objective of the project is to develop a system to create a 3D profile recon
 
 
 ## Prerequisites
-To run these Matlab scripts following add-ons are required:
+To run these Matlab scripts following add-ons are required
 |Name|Version|Product Number|
 |-------------|-------------|-----|
 |MATLAB|9.1|1|
