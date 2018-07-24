@@ -1,6 +1,9 @@
 ----UPDATE LOG----
 TODO
 check why logical map smaller ten graayscale
+try to solve inversing image. invers histogram?!
+remove border from patch
+do smooth in both directions?
 
 #Version 11:
 removed option to select number of strips set it default to 1px size

@@ -20,20 +20,19 @@ picFormat = 'jpg';						% Format of images in folder
 use_checkerboeard = 0;                  % Turn on or off, if off camera param are used
 calib_folder_name = '\calibration_pic'; % Name of folder where images are stored in
 calib_picFormat = 'jpg';				% Format of calib image in folder
-size_of_checkerboard_square = 0.029;       % Size of 1 square from checker board in mm
+size_of_checkerboard_square = 0.029;    % Size of 1 square from checker board in mm
 pixel_size = 2.2;                       % [um] If unknown = 0;
 imager_size = 5.7;                      % [mm] ONLY used when pixel size unknown
 active_pixels = 2592;					% Number of pixels from sensor ONLY used when pixel size unknown
 
 % IMG Processing
-contrast_logical = 0.9;				% Contrast factor to define logical map
+contrast_logical = 0.9;                 % Contrast factor to define logical map
 img_rotation = 0;						% Number of rotation of images by 90° clockwise
-inverse_height = 1;						% If model is upside down. Takes less processingtime then rotating every image twice
-										% Image needs to be inversed if line hitting 
-										% the item is higher on image
+inverse_height = 1;						% If images are upside down. Takes less processingtime then rotating every image
+
 inverse_Y_axis = 1;						% Mirror model left right also needed when height inversed
 filling_method = 'nearest';             % Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
-ground_height_factor = 25;               % How many slices histogram is made of.
+ground_height_factor = 25;              % How many slices histogram is made of.
                                         % Ground will be removed from where most points are
 
 % Smooth
@@ -53,12 +52,13 @@ motor_poly = [0.0201 0.5978 0.2827];    % Funktion calculated vrom measurment on
 
 % Laser
 angle_laser = 15;                       % Angle between laser and socket
+laser_correction_object_no = 20;        % Number of object used to find out angle rotation
 
 % Camera 
 camera_fps = 7;                         % Camera images taken per second
 
 % Output
-stl_file_name = 'model_3.stl';			% Name of STL file created from script
+stl_file_name = 'model.stl';			% Name of STL file created from script
 scale = 1;                              % Resize factor of model
 stl_compression = 0.2;                  % How much data from original data should be keept.
                                         % Reduces file size but also reduces
@@ -88,7 +88,8 @@ tic
 z_matrix = factory(picFormat, folder_name, ...
         img_rotation, smooth_run, smooth_factor, ... 
         contrast_logical, inverse_height, ground_height_factor, ...
-        filling_method, limiter_ponderation, limiter_area, limiter_status);
+        filling_method, limiter_ponderation, limiter_area, ...
+        limiter_status, laser_correction_object_no);
 no_of_img = size(z_matrix,2);               % Dimension 1 from z_matrix gives amount of image taken
 img_width = size(z_matrix,1);               % NB: img width not item width
 disp('-Image Processing done');
@@ -127,14 +128,16 @@ end
 %% Create patch struct
 solid = surf2solid(x_matrix,y_matrix,z_matrix,'ELEVATION',0);
 tic
-solid = reducepatch(solid,stl_compression);
+% TODO remove comment
+% solid = reducepatch(solid,stl_compression);
 disp('-Patch Reduction');
 toc
 %% Resized struct
 solid.vertices = solid.vertices*scale;
 
 %% Create STL file
-stlwrite(stl_file_name,solid);
+% TODO remove comment
+%stlwrite(stl_file_name,solid);
 
 %% Display Patch
 figure;
