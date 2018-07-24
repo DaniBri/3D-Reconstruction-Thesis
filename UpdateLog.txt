@@ -1,4 +1,6 @@
 ----UPDATE LOG----
+TODO
+check why logical map smaller ten graayscale
 
 #Version 11:
 removed option to select number of strips set it default to 1px size

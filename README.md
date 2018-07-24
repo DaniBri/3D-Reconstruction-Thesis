@@ -3,11 +3,13 @@ The objective of the project is to develop a system to create a 3D profile recon
 
 
 ## Prerequisites
-To run these Matlab scripts are used with following add-ons:
-Name: MATLAB							Version: 9.1		ProductNumber: 1
-Name: Image Processing Toolbox			Version: 9.5		ProductNumber: 17
-Name: Curve Fitting Toolbox				Version: 3.5.4		ProductNumber: 60
-Name: Computer Vision System Toolbox	Version: 7.2		ProductNumber: 96
+To run these Matlab scripts following add-ons are required:
+|Name|Version|Product Number|
+|-------------|-------------|-----|
+|MATLAB|9.1|1|
+|Image Processing Toolbox|9.5|17|
+|Curve Fitting Toolbox|3.5.4|60|
+|Computer Vision System Toolbox|7.2|96|
 
 ## Author
 
@@ -16,10 +18,10 @@ Name: Computer Vision System Toolbox	Version: 7.2		ProductNumber: 96
 ## Acknowledgments
 
 Special thanks to the following people for helping me realize this project:
-•	Djano Kandaswamy, responsible professor, HEVs
-•	Bernard Loehr, expert, HE-ARC
-•	Jonathan Michel, student & colleague, HEVs
+* Djano Kandaswamy, responsible professor, HEVs
+* Bernard Loehr, expert, HE-ARC
+* onathan Michel, student & colleague, HEVs
 
 Following functions were given by following people:
-•	Function: surf2solid.m	Author: Sven Holcombe
-•	Function: stlwrite.m	Author: Sven Holcombe
+* Function: surf2solid.m	Author: Sven Holcombe
+* Function: stlwrite.m	Author: Sven Holcombe
