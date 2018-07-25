@@ -165,39 +165,39 @@ z_matrix(z_matrix < 0) = 0;
 %% Removin diagonal on ground
 % Making average ground height difference at start and end of scan. 
 % Correct the height in a linear way, fixing diagonal of scan on length
-
 % Matrix margin to check = bodrer width that is checked
-margin = 4;                                         % Should be small number 2-5
-correction_array = zeros(1,size(z_matrix,2));       % Initializing array where gradiemt is stored
+margin = 4;
+correction_array = zeros(1,size(z_matrix,2));       % Initializing array where slop is stored
 diff_array = zeros(1,margin);                       % Initializing array where height difference is stored
 for column = 1:size(z_matrix,2)                     % Go through all the columns of matrix
     % Get height difference between border at start and end of matrix
     for i = 0:margin
         diff_max = z_matrix(1+1,column) - z_matrix(size(z_matrix,1)-i,column);	% Calculate height difference
         diff_length = (1+i) - size(z_matrix,2)-i;                            	% Calculate length difference
-        diff_array(i+1) = diff_max / diff_length;                               % Store gradient
+        diff_array(i+1) = diff_max / diff_length;                               % Store slop
     end
-    correction_array(column) = mean(diff_array);                                % Store mean gradient of rows
+    correction_array(column) = mean(diff_array);                                % Store mean slop of rows
 end
-gradient = mean(correction_array);                                              % Mean gradient of ground
+slop = mean(correction_array);                                                  % Mean slop of ground
 
-% Update every single value in row acording to gradient
-for row = 1:size(z_matrix,1)                                                 % Column position
-    correction = gradient*row;                                               % Correction needed on that row of matrix
-    for column = 1:size(z_matrix,2)                                          % Row position
+% Update every single value in row acording to slop
+for row = 1:size(z_matrix,1)                                                    % Column position
+    correction = slop*row;                                                      % Correction needed on that row of matrix
+    for column = 1:size(z_matrix,2)                                             % Row position
         z_matrix(row,column) = z_matrix(row,column) - correction;
     end
 end
+
 %% Put object to ground
-h=histogram(z_matrix(:),ground_height_factor);
-[~,I] = max(h.Values);
-ground_limit = h.BinEdges(I+1);
+[N,edges] = histcounts(z_matrix(:),ground_height_factor);
+[~,I] = max(N);
+ground_limit = edges(I+1);
 z_matrix = z_matrix - ground_limit;
 z_matrix(z_matrix < 0) = 0;
 
 %% Cutting exessiv border from z_matrix
 % Cut of border so there are only that many rows & colums with NAN
-h=histogram(z_matrix(:),ground_height_factor);
-[~,I] = max(h.Values);
-ground_limit = h.BinEdges(I+1);
+[N,edges] = histcounts(z_matrix(:),ground_height_factor);
+[~,I] = max(N);
+ground_limit = edges(I+1);
 z_matrix = cutter(z_matrix, ground_limit);

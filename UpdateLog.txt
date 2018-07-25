@@ -2,8 +2,12 @@
 TODO
 check why logical map smaller ten graayscale
 try to solve inversing image. invers histogram?!
+	do histogram check that majority is below rest else invert. somthing like that
 remove border from patch
 do smooth in both directions?
+#Version Github:
+reworked all scripts
+Ground angle correction is correct now
 
 #Version 11:
 removed option to select number of strips set it default to 1px size
