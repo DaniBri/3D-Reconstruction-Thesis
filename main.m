@@ -17,7 +17,7 @@ folder_name = '\sequenz2';              % Name of folder where images are stored
 picFormat = 'jpg';						% Format of images in folder
 
 % Calibration
-use_checkerboeard = 0;                  % Turn on or off, if off camera param are used
+use_checkerboeard = 1;                  % Turn on or off, if off camera param are used
 calib_folder_name = '\calibration_pic'; % Name of folder where images are stored in
 calib_picFormat = 'jpg';				% Format of calib image in folder
 size_of_checkerboard_square = 0.029;    % Size of 1 square from checker board in mm

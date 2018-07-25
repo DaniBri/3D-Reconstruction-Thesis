@@ -85,15 +85,15 @@ for image_nbr = 1:nmr_img_check
     stats = regionprops(logical_map, 'BoundingBox', 'Centroid');
 
     % Nota Bene: stats are sortet by bounding box on X axe
-    correction_array = zeros(1,laser_correction_object_no);                 % initializing array where different angles will be stored
+    correction_array = zeros(1,laser_correction_object_no);                 % Initializing array where different angles will be stored
     for i = 1:laser_correction_object_no
-        laser_diff_height = stats(i).Centroid(2) - stats(length(stats)-i+1).Centroid(2); % get height difference of two opposit dedected points
-        laser_diff_length = stats(i).Centroid(1) - stats(length(stats)-i+1).Centroid(1);% get length difference of two opposit dedected points
-        laser_correction_angle = atan(laser_diff_height/laser_diff_length);    % calc angle
-        laser_correction_angle = laser_correction_angle * 180 / pi;                     % convert to degree
-        correction_array(i) = laser_correction_angle;                                   % store it
+        laser_diff_height = stats(i).Centroid(2) - stats(length(stats)-i+1).Centroid(2);    % Get height difference of two opposit dedected points
+        laser_diff_length = stats(i).Centroid(1) - stats(length(stats)-i+1).Centroid(1);    % Get length difference of two opposit dedected points
+        laser_correction_angle = atan(laser_diff_height/laser_diff_length);                 % Calculate angle between those points
+        laser_correction_angle = laser_correction_angle * 180 / pi;                         % Convert to degree
+        correction_array(i) = laser_correction_angle;                                       % Store data
     end
-    correction_img_array(image_nbr) = mean(correction_array);                            % use the mean of all the different angles calculated
+    correction_img_array(image_nbr) = mean(correction_array);                               % Use the mean of all the different angles calculated
 end
 laser_correction_angle = mean(correction_img_array);
 
@@ -176,28 +176,28 @@ for column = 1:size(z_matrix,2)                     % Go through all the columns
         diff_length = (1+i) - size(z_matrix,2)-i;                            	% Calculate length difference
         diff_array(i+1) = diff_max / diff_length;                               % Store slop
     end
-    correction_array(column) = mean(diff_array);                                % Store mean slop of rows
+    correction_array(column) = mean(diff_array);                                % Store mean slop of column
 end
-slop = mean(correction_array);                                                  % Mean slop of ground
+slop = mean(correction_array);                                                  % Average ground slop 
 
 % Update every single value in row acording to slop
-for row = 1:size(z_matrix,1)                                                    % Column position
+for row = 1:size(z_matrix,1)                                                    % position in column
     correction = slop*row;                                                      % Correction needed on that row of matrix
-    for column = 1:size(z_matrix,2)                                             % Row position
+    for column = 1:size(z_matrix,2)                                             % Do entire row
         z_matrix(row,column) = z_matrix(row,column) - correction;
     end
 end
 
 %% Put object to ground
-[N,edges] = histcounts(z_matrix(:),ground_height_factor);
-[~,I] = max(N);
-ground_limit = edges(I+1);
-z_matrix = z_matrix - ground_limit;
-z_matrix(z_matrix < 0) = 0;
+[array,edges] = histcounts(z_matrix(:),ground_height_factor);   % Get values and limit of histogramm
+[~,I] = max(array);                                             % Find index of most used range
+ground_limit = edges(I+1);                                      % Get upper limit of that valuerange
+z_matrix = z_matrix - ground_limit;                             % Remove it from all values in matrix to make it the new ground
+z_matrix(z_matrix < 0) = 0;                                     % Remove all negative values
 
 %% Cutting exessiv border from z_matrix
 % Cut of border so there are only that many rows & colums with NAN
-[N,edges] = histcounts(z_matrix(:),ground_height_factor);
-[~,I] = max(N);
+[array,edges] = histcounts(z_matrix(:),ground_height_factor);
+[~,I] = max(array);
 ground_limit = edges(I+1);
-z_matrix = cutter(z_matrix, ground_limit);
+z_matrix = cutter(z_matrix, ground_limit);                      % Pass down the new ground limit to the cutter

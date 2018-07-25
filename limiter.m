@@ -1,5 +1,4 @@
 function z_matrix = limiter(original_matrix, ponderation, area)
-
 % LIMITER remove isolatet points
 % check if there is a huge change in value AND check if change is justified by
 % looking at area/size and occurance of that change. like if it's olny 1 
