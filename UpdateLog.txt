@@ -1,14 +1,14 @@
 ----UPDATE LOG----
 TODO
-*check why logical map smaller ten graayscale
-*try to solve inversing image. invers histogram?!
-	do histogram check that majority is below rest else invert. somthing like that
+* check for todo in all functions
+*angle on ground preventing cutter to cutt correctly
 *remove border from patch
-*do smooth in both directions?
 *inverse logical map or somthign to be able to do images where line is black and rest is white
 
+#Git V2:
+smoothing in other axe doesn't work
 
-#Version Github:
+#Git V1:
 reworked all scripts
 Ground angle correction is correct now
 

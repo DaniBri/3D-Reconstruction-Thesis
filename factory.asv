@@ -69,7 +69,7 @@ end
 
 %% Check laser angle
 % First few images are used to define laser rotation (angle) correction
-nmr_img_check = 5;
+nmr_img_check = 3;
 correction_img_array = zeros(1,nmr_img_check);                      % Initialize array
 for image_nbr = 1:nmr_img_check
     firstpic_name = fullfile(picFolder, picFiles(image_nbr).name);  % Getting current file in directory
@@ -79,7 +79,7 @@ for image_nbr = 1:nmr_img_check
     for rotations = 1:img_rotation       
         first_img = imrotate(first_img,-90,'bilinear');             % Rotating image by 90°
     end
-        
+    
     gray_im = rgb2gray(first_img);                                  % Convert from RGB to grayscale
     diff_im = imbinarize(gray_im,contrast_logical);                 % Gray ponderation
     diff_im = bwareaopen(diff_im,5);                                % Min. size of object
@@ -111,7 +111,7 @@ for current_img_no = 1:no_of_img                                            % Go
     end
     
     % Laser rotation angle correction if laser wasn't horizontal
-    current_img = imrotate(current_img,laser_correction_angle,'bilinear');
+    current_img = imrotate(current_img,laser_correction_angle,'bilinear');  
     
 	img_y_length = size(current_img,1);                                     % Get height of image
     no_of_strips = size(current_img,2);										% Get width of image
@@ -190,7 +190,7 @@ end
 % If smoothing created negative values replace them by 0
 z_matrix(z_matrix < 0) = 0;
 
-%% Artificaly creating ground angle
+%% artificaly creating ground angle TODO REMOVE THIS CHAPTER
 if(activate_errors ~= 0)
     for column = 1:size(z_matrix,2)
         for row = 1:size(z_matrix,1)
@@ -200,17 +200,43 @@ if(activate_errors ~= 0)
     end
 end
 
-%% Removing diagonal on ground X
-% Removing digonal on X axe of ground.
-z_matrix = ground_balancer(z_matrix);
+%% Removing diagonal on ground
+% Removing digonal on X axe of item. There should not be any diagonal on Y
+% axe cause this would macke the laser line diagonal and laser angle
+% correction already solves that problem.
+% Making average ground height difference at start and end of scan.
+% Correct the height in a linear way, fixing diagonal of scan on length
+% Matrix margin to check = bodrer width that is checked
+margin = 4;
+correction_array = zeros(1,size(z_matrix,1));       % Initializing array where slop is stored
+diff_array = zeros(1,margin);                       % Initializing array where height difference is stored
+if(margin*2+1 < size(z_matrix,2))                   % Minimal length of item matrix necessary
+    for row = 1:size(z_matrix,1)                    % Go through all the rows of matrix
+        % Get slop between border at start and end of row
+        for i = 0:margin
+            diff_max = z_matrix(row,1+i) - z_matrix(row,size(z_matrix,2) - i);  % Calculate height difference
+            diff_length = (size(z_matrix,2) - 2 * i);                           % Calculate length difference
+            diff_array(i+1) = diff_max / diff_length;                           % Store slop
+        end
+        correction_array(row) = mean(diff_array);                               % Store mean slop of column
+    end
+    slop = mean(correction_array);                                              % Average ground slop 
 
-%% Removing diagonal on ground Y
-% Removing digonal on Y axe of ground. There should not be too much 
-% diagonal on Y axe cause this would mean laser is rotateted.
-% There is already laser angle correction .
-z_matrix = rot90(z_matrix,1);                       % Rotate matrix 90°
-z_matrix = ground_balancer(z_matrix);
-z_matrix = rot90(z_matrix,-1);                      % Rotate back
+    % Update every single value in row acording to slop
+    for column = 1:size(z_matrix,2)                                             % position in column
+        correction = slop*column;                                               % Correction needed on that row of matrix
+        for row = 1:size(z_matrix,1)                                            % Do entire row
+            % Apply correction, doesn't matter if positiv or negativ
+            % it will mabe heighten ground up but it's gona be flat
+            % later ground is put to 0 anyway
+            z_matrix(row,column) = z_matrix(row,column) + correction;
+        end
+    end
+end
+
+%% Removing diagonal on ground 2
+% Removing digonal on Y axe of item. There should not be any diagonal on Y
+% axe cause this would ne made by the laser line diagonal and laser angle
 
 %% Put object to ground
 [array,edges] = histcounts(z_matrix(:),ground_height_factor);   % Get values and limit of histogramm
