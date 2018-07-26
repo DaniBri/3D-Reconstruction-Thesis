@@ -136,7 +136,10 @@ end
 
 %% Remove isolatet points
 if(limiter_status~=0)
+    % Remove spice values that don't make sense
     z_matrix = limiter(z_matrix, limiter_ponderation, limiter_area);
+    % Applie median filter for good measure
+    z_matrix = medfilt2(z_matrix);
 end
 
 %% Recover missing values in matrix 
@@ -162,32 +165,47 @@ end
 % If smoothing created negative values replace them by 0
 z_matrix(z_matrix < 0) = 0;
 
-%% Removin diagonal on ground
-% Making average ground height difference at start and end of scan. 
+%% artificaly creating ground angle TODO REMOVE THIS CHAPTER
+for column = 1:size(z_matrix,2)
+    for row = 1:size(z_matrix,1)
+        % change between + and - to change inclenison
+        z_matrix(row,column) = z_matrix(row,column) - 1.5*column;
+    end
+end
+
+%% Removing diagonal on ground
+% Removing digonal on X axe of item. There should not be any diagonal on Y
+% axe cause this would macke the laser line diagonal and laser angle
+% correction already solves that problem.
+% Making average ground height difference at start and end of scan.
 % Correct the height in a linear way, fixing diagonal of scan on length
 % Matrix margin to check = bodrer width that is checked
 margin = 4;
-correction_array = zeros(1,size(z_matrix,2));       % Initializing array where slop is stored
+correction_array = zeros(1,size(z_matrix,1));       % Initializing array where slop is stored
 diff_array = zeros(1,margin);                       % Initializing array where height difference is stored
-for column = 1:size(z_matrix,2)                     % Go through all the columns of matrix
-    % Get height difference between border at start and end of matrix
-    for i = 0:margin
-        diff_max = z_matrix(1+1,column) - z_matrix(size(z_matrix,1)-i,column);	% Calculate height difference
-        diff_length = (1+i) - size(z_matrix,2)-i;                            	% Calculate length difference
-        diff_array(i+1) = diff_max / diff_length;                               % Store slop
+if(margin*2+1 < size(z_matrix,2))                   % Minimal length of item matrix necessary
+    for row = 1:size(z_matrix,1)                    % Go through all the rows of matrix
+        % Get slop between border at start and end of row
+        for i = 0:margin
+            diff_max = z_matrix(row,1+i) - z_matrix(row,size(z_matrix,2) - i);  % Calculate height difference
+            diff_length = (size(z_matrix,2) - 2 * i);                           % Calculate length difference
+            diff_array(i+1) = diff_max / diff_length;                           % Store slop
+        end
+        correction_array(row) = mean(diff_array);                               % Store mean slop of column
     end
-    correction_array(column) = mean(diff_array);                                % Store mean slop of column
-end
-slop = mean(correction_array);                                                  % Average ground slop 
+    slop = mean(correction_array);                                              % Average ground slop 
 
-% Update every single value in row acording to slop
-for row = 1:size(z_matrix,1)                                                    % position in column
-    correction = slop*row;                                                      % Correction needed on that row of matrix
-    for column = 1:size(z_matrix,2)                                             % Do entire row
-        z_matrix(row,column) = z_matrix(row,column) - correction;
+    % Update every single value in row acording to slop
+    for column = 1:size(z_matrix,2)                                             % position in column
+        correction = slop*column;                                               % Correction needed on that row of matrix
+        for row = 1:size(z_matrix,1)                                            % Do entire row
+            % Apply correction, doesn't matter if positiv or negativ
+            % it will mabe heighten ground up but it's gona be flat
+            % later ground is put to 0 anyway
+            z_matrix(row,column) = z_matrix(row,column) + correction;
+        end
     end
 end
-
 %% Put object to ground
 [array,edges] = histcounts(z_matrix(:),ground_height_factor);   % Get values and limit of histogramm
 [~,I] = max(array);                                             % Find index of most used range

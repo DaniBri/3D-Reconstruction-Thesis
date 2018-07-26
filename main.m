@@ -127,7 +127,7 @@ end
 
 %% Create patch struct
 solid = surf2solid(x_matrix,y_matrix,z_matrix,'ELEVATION',0);
-tic
+tic 
 % TODO remove comment
 % solid = reducepatch(solid,stl_compression);
 disp('-Patch Reduction');
@@ -150,7 +150,9 @@ patch(solid,'FaceColor',       [0.8 0.8 1.0], ...
 % Add a camera light, and tone down the specular highlighting
 camlight('headlight');
 material('dull');
-
+xlabel(' X ')   % width of item
+ylabel(' Y ')   % length of item
+zlabel(' Z ')   % height of item
 % Fix the axes scaling, and set view angle
 view([-135 35]);
 axis('image');

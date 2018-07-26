@@ -5,11 +5,12 @@ function z_matrix = limiter(original_matrix, ponderation, area)
 %   not justified are replaced by NaN.
 %   Area checked is a cross form, not in diagonal.
 %   Recursive function calling itselfe until no new points were found in
-%   matrix to be removed. Recursive counter implemented to prevent looping
-%   for too long, because it is possible that there are minimal changes
-%   found for a very long time. Like removing 2 values all the them on a
-%   matrix that is 1900x100.
-%   Loop limit set at 100
+%   matrix to be removed. 
+%   Recursive counter implemented to prevent looping forever (security).
+%   Because it is possible that there are minimal changes
+%   found for a very long time. Ex: removing 2 values at a time when
+%   matrix has dimension 1900x100.
+%   Loop limit fixed in function at 50
 %
 %   Example where only singular values:
 %     a = 3×3
@@ -48,7 +49,8 @@ function z_matrix = limiter(original_matrix, ponderation, area)
 %   other points in area of 1 are within range of value
 %
 %   Author: Daniel Briguet, 01-07-2018
-
+%% Loop security setting
+loop_limit = 50;
 %% Initial Value
 % Get dimension of matrix
 column = size(original_matrix,2);
@@ -67,7 +69,7 @@ new_matrix = original_matrix;                               % Copie of matrix to
 persistent recursiveCount;
 % Upon the first call we need to initialize the variables.
 if isempty(recursiveCount)
-    recursiveCount = 0;
+    recursiveCount = loop_limit;
 end
 %% Recover missing values in matrix 
 % To compare it correctly there shouldn't be NaN values in matrix
@@ -154,16 +156,19 @@ result = backup_original == new_matrix;         % Comparison between new matrix 
 idx = result==0;                                % Inverse matrix if there was a difference make 1
 out = sum(idx(:));                              % Count differences
 
-% No differences found break out of recursivity
-if(out == 0 || recursiveCount >= 100)        
-    z_matrix = medfilt2(to_send);
+%% Recall function / Break out
+% If there where no differences break out of recursive loop
+% Same goes if turned to long in recursive loop 
+if(out == 0 || recursiveCount <= 0)
+    % Return final matrix 
+    z_matrix = to_send;
     disp('-Limiter done');
-    str = ['-Loops = ',num2str(recursiveCount)];
+    str = ['-Loops = ',num2str(loop_limit-recursiveCount)];
     disp(str);
 else
     % If there was still a differences it means there can potentiale still
     % be more to remove.
-    recursiveCount = recursiveCount + 1;
+    recursiveCount = recursiveCount - 1;
     z_matrix = limiter(to_send, ponderation, area);
     
 end
