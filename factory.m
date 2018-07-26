@@ -1,8 +1,10 @@
-function z_matrix = factory(picFormat,  folder_name, ...
-        img_rotation, activate_smooth, smooth_factor, ... 
+function z_matrix = factory(picFormat, folder_name, ...
+        img_rotation, smooth_run, smooth_factor, ... 
         contrast_logical, inverse_height, ground_height_factor, ...
         filling_method, limiter_ponderation, limiter_area, ...
-        limiter_status, laser_correction_object_no)
+        limiter_status, laser_correction_object_no, ...
+        activate_errors, error_percentage)
+
 %   FACTORY returns a 2D matrix.
 %   This matrix contains the height from the points from which the lane on
 %   each image consists of.
@@ -134,6 +136,18 @@ if(inverse_height ~= 0)
    z_matrix = max(max(z_matrix))- z_matrix;
 end
 
+%% Adding random points inmatrix 
+% random points at random position in matrix to test filter
+% what percentage of total values are randomized at random position
+% it is possible that same cell is randomized multiple times
+if(activate_errors ~= 0)
+    max_limit = round(max(max(z_matrix)));
+    for row = 1:(size(z_matrix,1)*size(z_matrix,2))*error_percentage/100
+        % change between + and - to change inclenison
+        z_matrix(randi(size(z_matrix,1)),randi(size(z_matrix,2))) = randi(max_limit);
+    end
+end
+
 %% Remove isolatet points
 if(limiter_status~=0)
     % Remove spice values that don't make sense
@@ -152,7 +166,7 @@ z_matrix = fillmissing(z_matrix,filling_method);
 
 %% Smoothing
 % Smooth transition from one value to another
-if(activate_smooth ~= 0)
+if(smooth_run ~= 0)
     % Store matrix dimension because smoothing transforms it to array
     temp1 = size(z_matrix,1);
     temp2 = size(z_matrix,2);
@@ -166,12 +180,15 @@ end
 z_matrix(z_matrix < 0) = 0;
 
 %% artificaly creating ground angle TODO REMOVE THIS CHAPTER
-for column = 1:size(z_matrix,2)
-    for row = 1:size(z_matrix,1)
-        % change between + and - to change inclenison
-        z_matrix(row,column) = z_matrix(row,column) - 1.5*column;
+if(activate_errors ~= 0)
+    for column = 1:size(z_matrix,2)
+        for row = 1:size(z_matrix,1)
+            % change between + and - to change inclenison
+            z_matrix(row,column) = z_matrix(row,column) - 1.5*column;
+        end
     end
 end
+
 
 %% Removing diagonal on ground
 % Removing digonal on X axe of item. There should not be any diagonal on Y

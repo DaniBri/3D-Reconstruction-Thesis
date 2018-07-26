@@ -64,6 +64,10 @@ stl_compression = 0.2;                  % How much data from original data shoul
                                         % Reduces file size but also reduces
                                         % qualitiy of model
 
+% Error Creation
+activate_errors = 0;                    % Artificaly creat errors of different sort in matrix
+error_percentage = 5;                   % percentage of values randomized in matrix
+
 %% Calibration Set-up
 if(use_checkerboeard ~= 0)
     calibFolder = strcat(pwd, calib_folder_name);       % Getting calibration file directory
@@ -89,7 +93,8 @@ z_matrix = factory(picFormat, folder_name, ...
         img_rotation, smooth_run, smooth_factor, ... 
         contrast_logical, inverse_height, ground_height_factor, ...
         filling_method, limiter_ponderation, limiter_area, ...
-        limiter_status, laser_correction_object_no);
+        limiter_status, laser_correction_object_no, ...
+        activate_errors, error_percentage);
 no_of_img = size(z_matrix,2);               % Dimension 1 from z_matrix gives amount of image taken
 img_width = size(z_matrix,1);               % NB: img width not item width
 disp('-Image Processing done');
