@@ -1,6 +1,6 @@
 function z_matrix = factory(picFormat, folder_name, ...
         img_rotation, smooth_run, smooth_factor, ... 
-        contrast_logical, inverse_height, ground_height_factor, ...
+        contrast_logical, ground_height_factor, ...
         filling_method, limiter_ponderation, limiter_area, ...
         limiter_status, laser_correction_object_no, ...
         activate_errors, error_percentage)
@@ -131,11 +131,6 @@ for current_img_no = 1:no_of_img                                            % Go
     end
 end
 
-% Inverse height if laser hitting the item is higher on image
-if(inverse_height ~= 0)
-   z_matrix = max(max(z_matrix))- z_matrix;
-end
-
 %% Adding random points inmatrix 
 % random points at random position in matrix to test filter
 % what percentage of total values are randomized at random position
@@ -163,6 +158,22 @@ z_matrix = rot90(z_matrix,1);                       % Rotate matrix 90°
 z_matrix = fillmissing(z_matrix,filling_method);    % Replaces all NaNs
 z_matrix = rot90(z_matrix,-1);                      % Rotate back
 z_matrix = fillmissing(z_matrix,filling_method);
+
+%% Inverse matrix if ground item is upside down in matrix
+% If ground has higher value then item hight matrix needs to be inverted.
+% else when pulling to ground everything gona be flatend
+% Finde ground
+[array,edges] = histcounts(z_matrix(:),ground_height_factor);   % Get values and limit of histogramm
+[~,I] = max(array);                                             % Find index of most used range
+ground = edges(I);                                              % Get upper limit of that valuerange
+
+% Finde average hight of matrix
+height_matrix = mean(mean(z_matrix));
+
+% Inverse height if matrix average height is below ground
+if(ground > height_matrix)
+   z_matrix = max(max(z_matrix))- z_matrix;
+end
 
 %% Smoothing
 % Smooth transition from one value to another

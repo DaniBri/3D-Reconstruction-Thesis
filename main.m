@@ -17,7 +17,7 @@ folder_name = '\sequenz2';              % Name of folder where images are stored
 picFormat = 'jpg';						% Format of images in folder
 
 % Calibration
-use_checkerboeard = 1;                  % Turn on or off, if off camera param are used
+use_checkerboeard = 0;                  % Turn on or off, if off camera param are used
 calib_folder_name = '\calibration_pic'; % Name of folder where images are stored in
 calib_picFormat = 'jpg';				% Format of calib image in folder
 size_of_checkerboard_square = 0.029;    % Size of 1 square from checker board in mm
@@ -27,9 +27,9 @@ active_pixels = 2592;					% Number of pixels from sensor ONLY used when pixel si
 
 % IMG Processing
 contrast_logical = 0.9;                 % Contrast factor to define logical map
-img_rotation = 0;						% Number of rotation of images by 90° clockwise
-inverse_height = 1;						% If images are upside down. Takes less processingtime then rotating every image
+img_rotation = 2;						% Number of rotation of images by 90° clockwise
 
+%TODO rename this clearu p
 inverse_Y_axis = 1;						% Mirror model left right also needed when height inversed
 filling_method = 'nearest';             % Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
 ground_height_factor = 25;              % How many slices histogram is made of.
@@ -66,7 +66,7 @@ stl_compression = 0.2;                  % How much data from original data shoul
 
 % Error Creation
 activate_errors = 0;                    % Artificaly creat errors of different sort in matrix
-error_percentage = 5;                   % percentage of values randomized in matrix
+error_percentage = 7;                   % percentage of values randomized in matrix
 
 %% Calibration Set-up
 if(use_checkerboeard ~= 0)
@@ -91,7 +91,7 @@ end
 tic
 z_matrix = factory(picFormat, folder_name, ...
         img_rotation, smooth_run, smooth_factor, ... 
-        contrast_logical, inverse_height, ground_height_factor, ...
+        contrast_logical, ground_height_factor, ...
         filling_method, limiter_ponderation, limiter_area, ...
         limiter_status, laser_correction_object_no, ...
         activate_errors, error_percentage);
