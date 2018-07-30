@@ -1,13 +1,13 @@
 ----UPDATE LOG----
 TODO
 * check for todo in all functions
-*remove border from patch
-*inverse logical map or somthign to be able to do images where line is black and rest is white
+* check what happens when laser is hiden during scan only at certain area
 
 #Git V2:
 smoothing in other axe doesn't work
 Laser angle correction own function
 Laser correction angle fixed, Object array wasn't sorted correctly
+If scan color reversed option.
 
 #Git V1:
 reworked all scripts

@@ -27,14 +27,13 @@ active_pixels = 2592;					% Number of pixels from sensor ONLY used when pixel si
 
 % IMG Processing
 contrast_logical = 0.9;                 % Contrast factor to define logical map
-img_rotation = 2;						% Number of rotation of images by 90° clockwise
+img_rotation = 0;						% Number of rotation of images by 90° clockwise
 min_object_size = 3;                    % Minimal size of sequenz for finder to look for. Helps avoiding noise on image
-
-%TODO rename this, clear up
-inverse_Y_axis = 1;						% Mirror model left right also needed when height inversed
+mirror_Y_axe = 1;						% Mirror model left right
 filling_method = 'nearest';             % Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
 ground_height_factor = 25;              % How many slices histogram is made of.
                                         % Ground will be removed from where most points are
+invert_color = 0;                       % Set to 1 if color are inversed. (laser line is black)
 
 % Smooth
 smooth_run = 1;                         % Turn on or off
@@ -63,7 +62,7 @@ camera_fps = 7;                         % Camera images taken per second
 % Output
 stl_file_name = 'model.stl';			% Name of STL file created from script
 scale = 1;                              % Resize factor of model
-stl_compression = 0.2;                  % How much data from original data should be keept.
+stl_compression = 0.5;                  % How much data from original data should be keept.
                                         % Reduces file size but also reduces
                                         % qualitiy of model
 
@@ -98,7 +97,7 @@ z_matrix = factory(picFormat, folder_name, ...
         filling_method, limiter_ponderation, limiter_area, ...
         limiter_status, laser_correction_object_no, ...
         nmr_img_check, activate_errors, error_percentage, ...
-        min_object_size, corr_object_size);
+        min_object_size, corr_object_size, invert_color);
 no_of_img = size(z_matrix,2);               % Dimension 1 from z_matrix gives amount of image taken
 img_width = size(z_matrix,1);               % NB: img width not item width
 disp('-Image Processing done');
@@ -130,22 +129,26 @@ y_matrix = y_matrix.';                              % Transpose matrix
 y_matrix = imresize(y_matrix, [img_width no_of_img], 'nearest');  
 
 % Mirror left and right of matrix
-if(inverse_Y_axis ~= 0)
+if(mirror_Y_axe ~= 0)
     y_matrix = item_width-y_matrix;
 end
 
 %% Create patch struct
 solid = surf2solid(x_matrix,y_matrix,z_matrix,'ELEVATION',0);
 tic 
-% TODO remove comment
-% solid = reducepatch(solid,stl_compression);
+% TODO remove comment (%)
+%solid = reducepatch(solid,stl_compression);
 disp('-Patch Reduction');
 toc
+
+%% Clear patch ground
+% Remove values close to ground on patch
+
 %% Resized struct
 solid.vertices = solid.vertices*scale;
 
 %% Create STL file
-% TODO remove comment
+% TODO remove comment (%)
 %stlwrite(stl_file_name,solid);
 
 %% Display Patch

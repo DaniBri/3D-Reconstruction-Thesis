@@ -1,22 +1,27 @@
 function angle = linepic2angle(nmr_img_check, picFolder, picFiles, ...
                  laser_correction_object_no, contrast_logical, ...
-                 cor_object_size, img_rotation)
-%   LINEPIC2ANGLE 
-%
+                 cor_object_size, img_rotation, invert_color)
+%   LINEPIC2ANGLE returns the angle of a line on a serie of pictures
+%   This function scanns multiple images to dedect a line on them.
+%   The line consists of multiple objects/points.
+%   nmr_img_check: how many images will be checked
+%   cor_object_size: minimal size of such an object
+%   
 %   Author: Daniel Briguet, 18-06-2018
 
 correction_img_array = zeros(1,nmr_img_check);                      % Initialize array
 for image_nbr = 1:nmr_img_check
     firstpic_name = fullfile(picFolder, picFiles(image_nbr).name);  % Getting current file in directory
-    first_img = imread(firstpic_name);                              % Load image
+    current_img = imread(firstpic_name);                              % Load image
     
     % Rotate image n times clockwise
     for rotations = 1:img_rotation       
-        first_img = imrotate(first_img,-90,'bilinear');             % Rotating image by 90° clockwise
+        current_img = imrotate(current_img,-90,'bilinear');             % Rotating image by 90° clockwise
     end
         
-    gray_im = rgb2gray(first_img);                                  % Convert from RGB to grayscale
-    diff_im = imbinarize(gray_im,contrast_logical);                 % Gray ponderation
+    % Process image from rgb to binarize 
+	diff_im = rgb2binarize(current_img, invert_color, contrast_logical);
+    
     diff_im = bwareaopen(diff_im,cor_object_size);                  % Min. size of object
     logical_map = logical(diff_im);                                 % Convert to logical
     objects = regionprops(logical_map, 'Centroid');
@@ -24,7 +29,7 @@ for image_nbr = 1:nmr_img_check
     % Check that amount of object user wants to use to make comparesion is
     % avaible
     if(laser_correction_object_no >= length(objects)/2)
-        laser_correction_object_no = round(length(objects)/2);
+        laser_correction_object_no = round(length(objects)/3);
     end
     
     % Creating array of doubles from all centroid

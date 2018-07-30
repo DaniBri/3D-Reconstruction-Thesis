@@ -4,7 +4,7 @@ function z_matrix = factory(picFormat, folder_name, ...
         filling_method, limiter_ponderation, limiter_area, ...
         limiter_status, laser_correction_object_no, ...
         nmr_img_check, activate_errors, error_percentage, ...
-        min_object_size, corr_object_size)
+        min_object_size, corr_object_size, invert_color)
 
 %   FACTORY returns a 2D matrix.
 %   This matrix contains the height from the points from which the lane on
@@ -53,14 +53,15 @@ end
 for current_img_no = 1:no_of_img                                            % Go through all the images in directory
     fullFileName = fullfile(picFolder, picFiles(current_img_no).name);      % Getting current image in directory
     current_img = imread(fullFileName);                                     % Load current image
-    gray_im = rgb2gray(current_img);                                        % Convert from RGB to grayscale
-    diff_im = imbinarize(gray_im,contrast_logical);                         % Brightness ponderation
-    diff_im = bwareaopen(diff_im,corr_object_size);                          % Min. size of object
+    
+    % Process image from rgb to binarize 
+	diff_im = rgb2binarize(current_img, invert_color, contrast_logical);
+    diff_im = bwareaopen(diff_im,corr_object_size);                         % Min. size of object
     logical_map = logical(diff_im);                                         % Convert to logical
     objects = regionprops(logical_map, 'Centroid');                         % Store information
     
     % Check if there are more then n objects found on image
-    if(length(objects) < 20)                                              
+    if(length(objects) < 10)                                              
         delete(fullFileName);
     else
         % Start of model found, no more images deleted
@@ -72,7 +73,7 @@ end
 % First few images are used to define laser rotation (angle) correction
 laser_corr_angle = linepic2angle(nmr_img_check, picFolder, picFiles, ...
                  laser_correction_object_no, contrast_logical, ...
-                 corr_object_size, img_rotation);                                   % Get laser angle from images
+                 corr_object_size, img_rotation, invert_color);             % Get laser angle from images
 
 %% Processing images
 for current_img_no = 1:no_of_img                                            % Go through all the images in directory
@@ -94,10 +95,10 @@ for current_img_no = 1:no_of_img                                            % Go
     if(current_img_no == 1)             
         z_matrix = NaN(no_of_strips,no_of_img); 
     end
-	
-    gray_im = rgb2gray(current_img);                                        % Convert from RGB to grayscale
-    diff_im = imbinarize(gray_im,contrast_logical);                         % Brightness ponderation
     
+    % Process image from rgb to binarize 
+	diff_im = rgb2binarize(current_img, invert_color, contrast_logical);
+
     % Find laser center position in every strip
     for current_strip = 1:no_of_strips                                      % Go through all slices of an image
         map_strip = diff_im(1:img_y_length,current_strip:current_strip);    % Load strip of current image
