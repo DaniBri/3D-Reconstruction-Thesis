@@ -28,8 +28,9 @@ active_pixels = 2592;					% Number of pixels from sensor ONLY used when pixel si
 % IMG Processing
 contrast_logical = 0.9;                 % Contrast factor to define logical map
 img_rotation = 2;						% Number of rotation of images by 90° clockwise
+min_object_size = 3;                    % Minimal size of sequenz for finder to look for. Helps avoiding noise on image
 
-%TODO rename this clearu p
+%TODO rename this, clear up
 inverse_Y_axis = 1;						% Mirror model left right also needed when height inversed
 filling_method = 'nearest';             % Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
 ground_height_factor = 25;              % How many slices histogram is made of.
@@ -52,7 +53,9 @@ motor_poly = [0.0201 0.5978 0.2827];    % Funktion calculated vrom measurment on
 
 % Laser
 angle_laser = 15;                       % Angle between laser and socket
-laser_correction_object_no = 20;        % Number of object used to find out angle rotation
+laser_correction_object_no = 15;        % Number of object used to find out angle rotation
+nmr_img_check = 10;                     % On how many images at start of scan angle is checked
+corr_object_size = 10;                  % Minimal size of object on image for corretion
 
 % Camera 
 camera_fps = 7;                         % Camera images taken per second
@@ -94,7 +97,8 @@ z_matrix = factory(picFormat, folder_name, ...
         contrast_logical, ground_height_factor, ...
         filling_method, limiter_ponderation, limiter_area, ...
         limiter_status, laser_correction_object_no, ...
-        activate_errors, error_percentage);
+        nmr_img_check, activate_errors, error_percentage, ...
+        min_object_size, corr_object_size);
 no_of_img = size(z_matrix,2);               % Dimension 1 from z_matrix gives amount of image taken
 img_width = size(z_matrix,1);               % NB: img width not item width
 disp('-Image Processing done');

@@ -1,4 +1,4 @@
-function centroid = finder(array_to_check)
+function centroid = finder(array_to_check, min_size)
 %   FINDER detects the centre of longest object in a row.
 %   Row needs to be logical, meaning only consisting of ones and zeros
 %   The Function goes trough array looking for longest sequence of ones.
@@ -10,7 +10,7 @@ function centroid = finder(array_to_check)
 %   Author: Daniel Briguet, 18-06-2018
 
 % Initializing variable
-size_largest = 0;
+size_largest = min_size;
 centroid = NaN;
 current_size = 0;
 

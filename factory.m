@@ -3,7 +3,8 @@ function z_matrix = factory(picFormat, folder_name, ...
         contrast_logical, ground_height_factor, ...
         filling_method, limiter_ponderation, limiter_area, ...
         limiter_status, laser_correction_object_no, ...
-        activate_errors, error_percentage)
+        nmr_img_check, activate_errors, error_percentage, ...
+        min_object_size, corr_object_size)
 
 %   FACTORY returns a 2D matrix.
 %   This matrix contains the height from the points from which the lane on
@@ -54,12 +55,12 @@ for current_img_no = 1:no_of_img                                            % Go
     current_img = imread(fullFileName);                                     % Load current image
     gray_im = rgb2gray(current_img);                                        % Convert from RGB to grayscale
     diff_im = imbinarize(gray_im,contrast_logical);                         % Brightness ponderation
-    diff_im = bwareaopen(diff_im,5);                                        % Min. size of object
+    diff_im = bwareaopen(diff_im,corr_object_size);                          % Min. size of object
     logical_map = logical(diff_im);                                         % Convert to logical
-    stats = regionprops(logical_map, 'BoundingBox', 'Centroid');            % Store information
+    objects = regionprops(logical_map, 'Centroid');                         % Store information
     
     % Check if there are more then n objects found on image
-    if(length(stats) < 20)                                              
+    if(length(objects) < 20)                                              
         delete(fullFileName);
     else
         % Start of model found, no more images deleted
@@ -69,36 +70,9 @@ end
 
 %% Check laser angle
 % First few images are used to define laser rotation (angle) correction
-nmr_img_check = 5;
-correction_img_array = zeros(1,nmr_img_check);                      % Initialize array
-for image_nbr = 1:nmr_img_check
-    firstpic_name = fullfile(picFolder, picFiles(image_nbr).name);  % Getting current file in directory
-    first_img = imread(firstpic_name);                              % Load image
-    
-    % Rotate image n times clockwise
-    for rotations = 1:img_rotation       
-        first_img = imrotate(first_img,-90,'bilinear');             % Rotating image by 90°
-    end
-        
-    gray_im = rgb2gray(first_img);                                  % Convert from RGB to grayscale
-    diff_im = imbinarize(gray_im,contrast_logical);                 % Gray ponderation
-    diff_im = bwareaopen(diff_im,5);                                % Min. size of object
-    logical_map = logical(diff_im);                                 % Convert to logical
-    stats = regionprops(logical_map, 'BoundingBox', 'Centroid');
-
-    % Nota Bene: stats are sortet by bounding box on X axe
-    correction_array = zeros(1,laser_correction_object_no);                 % Initializing array where different angles will be stored
-    for i = 1:laser_correction_object_no
-        laser_diff_height = stats(i).Centroid(2) - stats(length(stats)-i+1).Centroid(2);    % Get height difference of two opposit dedected points
-        laser_diff_length = stats(i).Centroid(1) - stats(length(stats)-i+1).Centroid(1);    % Get length difference of two opposit dedected points
-        laser_correction_angle = atan(laser_diff_height/laser_diff_length);                 % Calculate angle between those points
-        laser_correction_angle = laser_correction_angle * 180 / pi;                         % Convert to degree
-        correction_array(i) = laser_correction_angle;                                       % Store data
-    end
-    correction_img_array(image_nbr) = mean(correction_array);                               % Use the mean of all the different angles calculated
-end
-laser_correction_angle = mean(correction_img_array);
-
+laser_corr_angle = linepic2angle(nmr_img_check, picFolder, picFiles, ...
+                 laser_correction_object_no, contrast_logical, ...
+                 corr_object_size, img_rotation);                                   % Get laser angle from images
 
 %% Processing images
 for current_img_no = 1:no_of_img                                            % Go through all the images in directory
@@ -111,10 +85,10 @@ for current_img_no = 1:no_of_img                                            % Go
     end
     
     % Laser rotation angle correction if laser wasn't horizontal
-    current_img = imrotate(current_img,laser_correction_angle,'bilinear');
+    current_img = imrotate(current_img,laser_corr_angle,'bilinear');
     
 	img_y_length = size(current_img,1);                                     % Get height of image
-    no_of_strips = size(current_img,2);										% Get width of image
+    no_of_strips = size(current_img,2);                                     % Get width of image
 	
 	% Initialize z_matrix, only done once, this is done in for loop to know the dimensions of images
     if(current_img_no == 1)             
@@ -127,7 +101,7 @@ for current_img_no = 1:no_of_img                                            % Go
     % Find laser center position in every strip
     for current_strip = 1:no_of_strips                                      % Go through all slices of an image
         map_strip = diff_im(1:img_y_length,current_strip:current_strip);    % Load strip of current image
-        z_matrix(current_strip,current_img_no) = finder(map_strip);         % Find position in strip
+        z_matrix(current_strip,current_img_no) = finder(map_strip, min_object_size);         % Find position in strip
     end
 end
 
@@ -203,14 +177,6 @@ end
 %% Removing diagonal on ground X
 % Removing digonal on X axe of ground.
 z_matrix = ground_balancer(z_matrix);
-
-%% Removing diagonal on ground Y
-% Removing digonal on Y axe of ground. There should not be too much 
-% diagonal on Y axe cause this would mean laser is rotateted.
-% There is already laser angle correction .
-z_matrix = rot90(z_matrix,1);                       % Rotate matrix 90°
-z_matrix = ground_balancer(z_matrix);
-z_matrix = rot90(z_matrix,-1);                      % Rotate back
 
 %% Put object to ground
 [array,edges] = histcounts(z_matrix(:),ground_height_factor);   % Get values and limit of histogramm
