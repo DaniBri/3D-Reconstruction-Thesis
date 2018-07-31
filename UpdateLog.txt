@@ -2,12 +2,16 @@
 TODO
 * check for todo in all functions
 * check what happens when laser is hiden during scan only at certain area
+* maybe make ground angle correction recursive
+* define ground another way?
 
 #Git V2:
 smoothing in other axe doesn't work
 Laser angle correction own function
 Laser correction angle fixed, Object array wasn't sorted correctly
 If scan color reversed option.
+Fixed median filter
+Adden second cutter imediatly after creating matrix to remove rows with no relevance
 
 #Git V1:
 reworked all scripts

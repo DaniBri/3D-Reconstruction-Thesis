@@ -31,7 +31,7 @@ img_rotation = 0;						% Number of rotation of images by 90° clockwise
 min_object_size = 3;                    % Minimal size of sequenz for finder to look for. Helps avoiding noise on image
 mirror_Y_axe = 1;						% Mirror model left right
 filling_method = 'nearest';             % Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
-ground_height_factor = 25;              % How many slices histogram is made of.
+ground_height_factor = 20;              % How many slices histogram is made of.
                                         % Ground will be removed from where most points are
 invert_color = 0;                       % Set to 1 if color are inversed. (laser line is black)
 
@@ -41,7 +41,7 @@ smooth_factor = 0.0001;                 % Use with moderation. Falsifies dimensi
 
 % Limiter
 limiter_status = 1;                     % Turn on or off
-limiter_ponderation = 0.1;              % Faktor on diff ponderation between values
+limiter_ponderation = 0.02;              % Faktor on diff ponderation between values
 limiter_area = 5;                       % How many adjasant values are checked in (up/down/left/right)
 
 % Motor

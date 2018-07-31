@@ -106,6 +106,28 @@ for current_img_no = 1:no_of_img                                            % Go
     end
 end
 
+%% Cut matrix
+% Remove row from matrix where nothing was found
+% This is exuivalent to remove border left and right on every image if on
+% same strip nothing was found in any sequenz image
+
+% Matrix up to down check
+% Check if all values are NaN
+while(nnz(~isnan(z_matrix(1,:))) == 0)
+    z_matrix(1, :) = [];
+end
+
+% Matrix down to up check
+% Check if all values are NaN
+while(nnz(~isnan(z_matrix(size(z_matrix,1),:))) == 0)
+    z_matrix(size(z_matrix,1), :) = [];
+end
+
+% Controll if matrix was empty
+if(isempty(z_matrix))
+    error('Matrix is empty, no item found');
+end
+
 %% Adding random points inmatrix 
 % random points at random position in matrix to test filter
 % what percentage of total values are randomized at random position
@@ -122,8 +144,6 @@ end
 if(limiter_status~=0)
     % Remove spice values that don't make sense
     z_matrix = limiter(z_matrix, limiter_ponderation, limiter_area);
-    % Applie median filter for good measure
-    z_matrix = medfilt2(z_matrix);
 end
 
 %% Recover missing values in matrix 
@@ -133,6 +153,17 @@ z_matrix = rot90(z_matrix,1);                       % Rotate matrix 90°
 z_matrix = fillmissing(z_matrix,filling_method);    % Replaces all NaNs
 z_matrix = rot90(z_matrix,-1);                      % Rotate back
 z_matrix = fillmissing(z_matrix,filling_method);
+
+%% Median Filter
+% Applie median filter for good measure
+% Using it after filling missing values cause else NaN values in filter
+% will remove even more data
+z_matrix = medfilt2(z_matrix);
+
+% Important: medfilt2 pads the image with zero on the edges.
+% To solve that remove 0 and reconstruct them
+z_matrix(z_matrix == 0) = NaN;
+z_matrix = fillmissing(z_matrix,filling_method);    % Replaces all NaNs
 
 %% Inverse matrix if ground item is upside down in matrix
 % If ground has higher value then item hight matrix needs to be inverted.

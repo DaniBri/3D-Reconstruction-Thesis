@@ -10,7 +10,7 @@ function z_matrix = limiter(original_matrix, ponderation, area)
 %   Because it is possible that there are minimal changes
 %   found for a very long time. Ex: removing 2 values at a time when
 %   matrix has dimension 1900x100.
-%   Loop limit fixed in function at 50
+%   Loop limit fixed in function at 32
 %
 %   Example where only singular values:
 %     a = 3×3
@@ -50,7 +50,8 @@ function z_matrix = limiter(original_matrix, ponderation, area)
 %
 %   Author: Daniel Briguet, 01-07-2018
 %% Loop security setting
-loop_limit = 50;
+loop_limit = 32;
+
 %% Initial Value
 % Get dimension of matrix
 column = size(original_matrix,2);
