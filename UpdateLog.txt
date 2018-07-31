@@ -12,6 +12,7 @@ Laser correction angle fixed, Object array wasn't sorted correctly
 If scan color reversed option.
 Fixed median filter
 Adden second cutter imediatly after creating matrix to remove rows with no relevance
+ground angle correction is recursive
 
 #Git V1:
 reworked all scripts

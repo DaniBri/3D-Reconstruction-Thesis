@@ -3,6 +3,7 @@ function z_matrix = ground_balancer(original_matrix)
 %   Making average ground height difference at start and end of matrix.
 %   Correct the height in a linear way, fixing diagonal of scan on length
 %   Matrix margin to check = bodrer width that is checked
+%   Ground is balanced until angle is smaller then 0.01
 %
 %   Author: Daniel Briguet, 18-06-2018
 
@@ -32,5 +33,8 @@ if(margin*2+1 < size(original_matrix,2))                   % Minimal length of i
         end
     end
 end
-
-z_matrix = original_matrix;
+if(abs(slop) >= 0.01)
+    z_matrix = ground_balancer(original_matrix);
+else
+    z_matrix = original_matrix;
+end
