@@ -1,8 +1,5 @@
-imtool close all;
-close all;
-clc;
-clear;
-% Main.m is the base script to run for the reconstruction.
+function reconstruction(test)
+% RECONSTRUCTION is the base function to run.
 % In here it is possible to configure all the settings, allowing to modify
 % the quality of the reconstruction and to adapt to different pictures.
 % In the end the script returns an STL File according to all the Picture located
@@ -11,15 +8,13 @@ clear;
 % Author: Daniel Briguet, 18-06-2018
 
 %% Settings
-
 % Sequenze
-folder_name = '\sequenz2';              % Name of folder where images are stored
+folder_name = test;              % Name of folder where images are stored
 picFormat = 'jpg';						% Format of images in folder
 
 % Calibration
 use_checkerboeard = 0;                  % Turn on or off, if off camera param are used
 calib_folder_name = '\calibration_pic'; % Name of folder where images are stored in
-calib_picFormat = 'jpg';				% Format of calib image in folder
 size_of_checkerboard_square = 0.029;    % Size of 1 square from checker board in mm
 pixel_size = 2.2;                       % [um] If unknown = 0;
 imager_size = 5.7;                      % [mm] ONLY used when pixel size unknown
@@ -28,20 +23,15 @@ active_pixels = 2592;					% Number of pixels from sensor ONLY used when pixel si
 % IMG Processing
 contrast_logical = 0.9;                 % Contrast factor to define logical map
 img_rotation = 0;						% Number of rotation of images by 90° clockwise
-min_object_size = 3;                    % Minimal size of sequenz for finder to look for. Helps avoiding noise on image
+finder_object_size = 3;                    % Minimal size of sequenz for finder to look for. Helps avoiding noise on image
 mirror_Y_axe = 1;						% Mirror model left right
 filling_method = 'nearest';             % Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
-ground_height_factor = 20;              % How many slices histogram is made of.
-                                        % Ground will be removed from where most points are
-invert_color = 0;                       % Set to 1 if color are inversed. (laser line is black)
 
 % Smooth
-smooth_run = 1;                         % Turn on or off
 smooth_factor = 0.0001;                 % Use with moderation. Falsifies dimensions and slows down reconstruction
 
 % Limiter
-limiter_status = 1;                     % Turn on or off
-limiter_ponderation = 0.02;              % Faktor on diff ponderation between values
+limiter_ponderation = 0.1;              % Faktor on diff ponderation between values
 limiter_area = 5;                       % How many adjasant values are checked in (up/down/left/right)
 
 % Motor
@@ -53,14 +43,14 @@ motor_poly = [0.0201 0.5978 0.2827];    % Funktion calculated vrom measurment on
 % Laser
 angle_laser = 15;                       % Angle between laser and socket
 laser_correction_object_no = 15;        % Number of object used to find out angle rotation
-nmr_img_check = 10;                     % On how many images at start of scan angle is checked
-corr_object_size = 10;                  % Minimal size of object on image for corretion
+nmr_img_check = 5;                      % On how many images at start of scan angle is checked
+line_object_size = 10;                  % Minimal size of object on image for corretion
 
 % Camera 
 camera_fps = 7;                         % Camera images taken per second
 
 % Output
-stl_file_name = 'model.stl';			% Name of STL file created from script
+stl_file_name = 'model';			% Name of STL file created from script
 scale = 1;                              % Resize factor of model
 stl_compression = 0.5;                  % How much data from original data should be keept.
                                         % Reduces file size but also reduces
@@ -76,7 +66,7 @@ if(use_checkerboeard ~= 0)
     if ~isdir(calibFolder)
         error('Error, The following directory does not exist: \n%s', calibFolder);
     end
-    calibration_filename = fullfile(calibFolder, strcat('*.', calib_picFormat));    % Getting calibration image in directory
+    calibration_filename = fullfile(calibFolder, strcat('*.', picFormat));    % Getting calibration image in directory
     picFile = dir(calibration_filename);                                            % Storing information about all files in that folder
     fullFileName = fullfile(calibFolder, picFile(1).name);                          % Save path to first image and it's name
     relation_px_mm = calibration(size_of_checkerboard_square,fullFileName);         % Give image and size, retuns relation [mm/px]
@@ -92,12 +82,12 @@ end
 % Transmit settings and run image processing
 tic
 z_matrix = factory(picFormat, folder_name, ...
-        img_rotation, smooth_run, smooth_factor, ... 
-        contrast_logical, ground_height_factor, ...
-        filling_method, limiter_ponderation, limiter_area, ...
-        limiter_status, laser_correction_object_no, ...
+        img_rotation, smooth_factor, ... 
+        contrast_logical, filling_method, ...
+        limiter_ponderation, limiter_area, ...
+        laser_correction_object_no, ...
         nmr_img_check, activate_errors, error_percentage, ...
-        min_object_size, corr_object_size, invert_color);
+        finder_object_size, line_object_size);
 no_of_img = size(z_matrix,2);               % Dimension 1 from z_matrix gives amount of image taken
 img_width = size(z_matrix,1);               % NB: img width not item width
 disp('-Image Processing done');
@@ -149,7 +139,7 @@ solid.vertices = solid.vertices*scale;
 
 %% Create STL file
 % TODO remove comment (%)
-%stlwrite(stl_file_name,solid);
+%stlwrite(strcat(stl_file_name, 'stl'),solid);
 
 %% Display Patch
 figure;

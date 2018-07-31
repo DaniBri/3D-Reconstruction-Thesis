@@ -1,4 +1,4 @@
-function z_matrix = cutter(original_matrix, limit)
+function result_matrix = cutter(z_matrix, ground_cutter_limit, smooth_factor)
 % CUTTER resizes matrix by cutting of border having no cell with value
 % equal or greater than limit.
 %
@@ -31,12 +31,28 @@ function z_matrix = cutter(original_matrix, limit)
 x_start = 0;
 y_start = 0;
 
+% Copie matrix that will be cutt later on and send back
+backup_matrix = z_matrix;
+
+%% Smoothing
+% Extra smoothing to remove perturbation on ground.
+% alows to finde limit to cut behind some "too high" points on ground
+temp1 = size(z_matrix,1);
+temp2 = size(z_matrix,2);
+
+% Smooth methodes: moving, lowess, loess, sgolay, rlowess, rloess
+z_matrix = smooth(z_matrix,smooth_factor,'moving'); % Smoothing of matrix
+z_matrix = reshape(z_matrix,temp1,temp2);           % Convert array back to matrix
+
+%% Get cut region
+% If smoothing created negative values replace them by 0
+z_matrix(z_matrix < 0) = 0;
 % Go past every column getting position in Y
-for dim_1 = 1:size(original_matrix,1)
+for dim_1 = 1:size(z_matrix,1)
     % Do every row of column
-    for dim_2 = 1:size(original_matrix,2)
+    for dim_2 = 1:size(z_matrix,2)
         % Check if value is higher then limit
-        if((original_matrix(dim_1,dim_2) >= limit))
+        if((z_matrix(dim_1,dim_2) >= ground_cutter_limit))
             % Check if start was already found
             if(y_start == 0)
                 % Store column number where first value higher then limit
@@ -51,9 +67,9 @@ for dim_1 = 1:size(original_matrix,1)
 end
 
 % Do same as before but for positions in X
-for dim_2 = 1:size(original_matrix,2)
-    for dim_1 = 1:size(original_matrix,1)
-        if((original_matrix(dim_1,dim_2) >= limit))
+for dim_2 = 1:size(z_matrix,2)
+    for dim_1 = 1:size(z_matrix,1)
+        if((z_matrix(dim_1,dim_2) >= ground_cutter_limit))
             if( x_start == 0)
                 x_start = dim_2;
             end
@@ -69,4 +85,4 @@ end
 
 %% Rezising matrix to new dimensions at given location
 % z_matrix(column_start_coord:column_dest_coord,row_start_coord:row_dest_coord);
-z_matrix = original_matrix(y_start:y_dest,x_start:x_dest); 
+result_matrix = backup_matrix(y_start:y_dest,x_start:x_dest); 

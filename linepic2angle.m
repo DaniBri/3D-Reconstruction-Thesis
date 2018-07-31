@@ -1,6 +1,6 @@
 function angle = linepic2angle(nmr_img_check, picFolder, picFiles, ...
                  laser_correction_object_no, contrast_logical, ...
-                 cor_object_size, img_rotation, invert_color)
+                 line_object_size, img_rotation)
 %   LINEPIC2ANGLE returns the angle of a line on a serie of pictures
 %   This function scanns multiple images to dedect a line on them.
 %   The line consists of multiple objects/points.
@@ -9,7 +9,7 @@ function angle = linepic2angle(nmr_img_check, picFolder, picFiles, ...
 %   
 %   Author: Daniel Briguet, 18-06-2018
 
-correction_img_array = zeros(1,nmr_img_check);                      % Initialize array
+correction_img_array = NaN(1,nmr_img_check);                      % Initialize array
 for image_nbr = 1:nmr_img_check
     firstpic_name = fullfile(picFolder, picFiles(image_nbr).name);  % Getting current file in directory
     current_img = imread(firstpic_name);                              % Load image
@@ -20,9 +20,9 @@ for image_nbr = 1:nmr_img_check
     end
         
     % Process image from rgb to binarize 
-	diff_im = rgb2binarize(current_img, invert_color, contrast_logical);
+	diff_im = rgb2binarize(current_img, contrast_logical);
     
-    diff_im = bwareaopen(diff_im,cor_object_size);                  % Min. size of object
+    diff_im = bwareaopen(diff_im,line_object_size);                  % Min. size of object
     logical_map = logical(diff_im);                                 % Convert to logical
     objects = regionprops(logical_map, 'Centroid');
 

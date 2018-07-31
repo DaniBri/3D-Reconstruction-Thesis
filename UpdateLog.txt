@@ -1,15 +1,14 @@
 ----UPDATE LOG----
 TODO
-* check for todo in all functions
-* check what happens when laser is hiden during scan only at certain area
-* maybe make ground angle correction recursive
-* define ground another way?
+* Check for todo in all functions
+* Cutter needs help to do ground limit
+* Do a GUI for matlab friendly user interface to set parameters
 
 #Git V2:
 smoothing in other axe doesn't work
 Laser angle correction own function
 Laser correction angle fixed, Object array wasn't sorted correctly
-If scan color reversed option.
+If scan color reversed option. (removed)
 Fixed median filter
 Adden second cutter imediatly after creating matrix to remove rows with no relevance
 ground angle correction is recursive
