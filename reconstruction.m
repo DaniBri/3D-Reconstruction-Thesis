@@ -8,7 +8,7 @@ function result = reconstruction(FolderNameSequenze, ImageFormat, NameSTLFile, .
                         MotorSpeedPolynom, LaserAngle, CameraFPS, ...
                         FileCompression, FileScale, ObjectsChecked, ...
                         ImagesChecked, ObjectSize, ErrorEnabled, ...
-                        ErrorPercentage)
+                        ErrorPercentage, GroundAngleError)
 % RECONSTRUCTION is the base function to run.
 % In here it is possible to configure all the settings, allowing to modify
 % the quality of the reconstruction and to adapt to different pictures.
@@ -16,7 +16,8 @@ function result = reconstruction(FolderNameSequenze, ImageFormat, NameSTLFile, .
 % in a given folder.
 %
 % Author: Daniel Briguet, 18-06-2018
-
+clc
+disp('-Reconstruction Started');
 %% Settings
 % Sequenze
 folder_name = FolderNameSequenze;              % Name of folder where images are stored
@@ -69,7 +70,7 @@ stl_compression = FileCompression;                  % How much data from origina
 % Error Creation
 activate_errors = ErrorEnabled;                    % Artificaly creat errors of different sort in matrix
 error_percentage = ErrorPercentage;                   % percentage of values randomized in matrix
-
+ground_angle_error = GroundAngleError;
 %% Calibration Set-up
 if(use_checkerboeard ~= 0)
     calibFolder = strcat(pwd, calib_folder_name);       % Getting calibration file directory
@@ -97,7 +98,7 @@ z_matrix = factory(picFormat, folder_name, ...
         limiter_ponderation, limiter_area, ...
         laser_correction_object_no, ...
         nmr_img_check, activate_errors, error_percentage, ...
-        finder_object_size, line_object_size);
+        finder_object_size, line_object_size, ground_angle_error);
 no_of_img = size(z_matrix,2);               % Dimension 1 from z_matrix gives amount of image taken
 img_width = size(z_matrix,1);               % NB: img width not item width
 disp('-Image Processing done');

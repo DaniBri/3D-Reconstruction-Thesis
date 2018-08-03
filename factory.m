@@ -4,7 +4,7 @@ function z_matrix = factory(picFormat, folder_name, ...
         limiter_ponderation, limiter_area, ...
         laser_correction_object_no, ...
         nmr_img_check, activate_errors, error_percentage, ...
-        finder_object_size, line_object_size)
+        finder_object_size, line_object_size, ground_angle_error)
 
 %   FACTORY returns a 2D matrix.
 %   This matrix contains the height from the points from which the lane on
@@ -223,7 +223,7 @@ if(activate_errors ~= 0)
     for column = 1:size(z_matrix,2)
         for row = 1:size(z_matrix,1)
             % change between + and - to change inclenison
-            z_matrix(row,column) = z_matrix(row,column) - 1.5*column;
+            z_matrix(row,column) = z_matrix(row,column) - ground_angle_error*column;
         end
     end
 end
