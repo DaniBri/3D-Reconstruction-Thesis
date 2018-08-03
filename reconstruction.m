@@ -1,4 +1,14 @@
-function reconstruction(test)
+function result = reconstruction(FolderNameSequenze, ImageFormat, NameSTLFile, ...
+                        EnableCheckerboard, FolderNameCalibration, ...
+                        SquareSize, PixelSize, ImagerSize, ...
+                        ActivePixels, ImageContrast, ImageRotation, ...
+                        FinderMinSize, MirrorYAxe, FillingMethod, ...
+                        SmoothFactor, LimiterPonderation, LimiterArea, ...
+                        MotorAlimentation, MotorAxisDiameter, ...
+                        MotorSpeedPolynom, LaserAngle, CameraFPS, ...
+                        FileCompression, FileScale, ObjectsChecked, ...
+                        ImagesChecked, ObjectSize, ErrorEnabled, ...
+                        ErrorPercentage)
 % RECONSTRUCTION is the base function to run.
 % In here it is possible to configure all the settings, allowing to modify
 % the quality of the reconstruction and to adapt to different pictures.
@@ -9,56 +19,56 @@ function reconstruction(test)
 
 %% Settings
 % Sequenze
-folder_name = test;              % Name of folder where images are stored
-picFormat = 'jpg';						% Format of images in folder
+folder_name = FolderNameSequenze;              % Name of folder where images are stored
+picFormat = ImageFormat;						% Format of images in folder
 
 % Calibration
-use_checkerboeard = 0;                  % Turn on or off, if off camera param are used
-calib_folder_name = '\calibration_pic'; % Name of folder where images are stored in
-size_of_checkerboard_square = 0.029;    % Size of 1 square from checker board in mm
-pixel_size = 2.2;                       % [um] If unknown = 0;
-imager_size = 5.7;                      % [mm] ONLY used when pixel size unknown
-active_pixels = 2592;					% Number of pixels from sensor ONLY used when pixel size unknown
+use_checkerboeard = EnableCheckerboard;                  % Turn on or off, if off camera param are used
+calib_folder_name = FolderNameCalibration; % Name of folder where images are stored in
+size_of_checkerboard_square = SquareSize;    % Size of 1 square from checker board in mm
+pixel_size = PixelSize;                       % [um] If unknown = 0;
+imager_size = ImagerSize;                      % [mm] ONLY used when pixel size unknown
+active_pixels = ActivePixels;					% Number of pixels from sensor ONLY used when pixel size unknown
 
 % IMG Processing
-contrast_logical = 0.9;                 % Contrast factor to define logical map
-img_rotation = 0;						% Number of rotation of images by 90° clockwise
-finder_object_size = 3;                    % Minimal size of sequenz for finder to look for. Helps avoiding noise on image
-mirror_Y_axe = 1;						% Mirror model left right
-filling_method = 'nearest';             % Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
+contrast_logical = ImageContrast;                 % Contrast factor to define logical map
+img_rotation = ImageRotation;						% Number of rotation of images by 90° clockwise
+finder_object_size = FinderMinSize;                    % Minimal size of sequenz for finder to look for. Helps avoiding noise on image
+mirror_Y_axe = MirrorYAxe;						% Mirror model left right
+filling_method = FillingMethod;             % Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'.
 
 % Smooth
-smooth_factor = 0.0001;                 % Use with moderation. Falsifies dimensions and slows down reconstruction
+smooth_factor = SmoothFactor/10000;                 % Use with moderation. Falsifies dimensions and slows down reconstruction
 
 % Limiter
-limiter_ponderation = 0.1;              % Faktor on diff ponderation between values
-limiter_area = 5;                       % How many adjasant values are checked in (up/down/left/right)
+limiter_ponderation = LimiterPonderation;              % Faktor on diff ponderation between values
+limiter_area = LimiterArea;                       % How many adjasant values are checked in (up/down/left/right)
 
 % Motor
-motor_alim = 2;                         % [V] Motor powere supply
-motor_axis_dia = 6;                     % [mm] Diameter where cable is wrapped around
-motor_poly = [0.0201 0.5978 0.2827];    % Funktion calculated vrom measurment on motor
+motor_alim = MotorAlimentation;                         % [V] Motor powere supply
+motor_axis_dia = MotorAxisDiameter;                     % [mm] Diameter where cable is wrapped around
+motor_poly = MotorSpeedPolynom;    % Funktion calculated vrom measurment on motor
                                         % p(x) = [ax^2+bx+c]
 
 % Laser
-angle_laser = 15;                       % Angle between laser and socket
-laser_correction_object_no = 15;        % Number of object used to find out angle rotation
-nmr_img_check = 5;                      % On how many images at start of scan angle is checked
-line_object_size = 10;                  % Minimal size of object on image for corretion
+angle_laser = LaserAngle;                       % Angle between laser and socket
+laser_correction_object_no = ObjectsChecked;        % Number of object used to find out angle rotation
+nmr_img_check = ImagesChecked;                      % On how many images at start of scan angle is checked
+line_object_size = ObjectSize;                  % Minimal size of object on image for corretion
 
 % Camera 
-camera_fps = 7;                         % Camera images taken per second
+camera_fps = CameraFPS;                         % Camera images taken per second
 
 % Output
-stl_file_name = 'model';			% Name of STL file created from script
-scale = 1;                              % Resize factor of model
-stl_compression = 0.5;                  % How much data from original data should be keept.
+stl_file_name = NameSTLFile;			% Name of STL file created from script
+scale = FileScale;                              % Resize factor of model
+stl_compression = FileCompression;                  % How much data from original data should be keept.
                                         % Reduces file size but also reduces
                                         % qualitiy of model
 
 % Error Creation
-activate_errors = 0;                    % Artificaly creat errors of different sort in matrix
-error_percentage = 7;                   % percentage of values randomized in matrix
+activate_errors = ErrorEnabled;                    % Artificaly creat errors of different sort in matrix
+error_percentage = ErrorPercentage;                   % percentage of values randomized in matrix
 
 %% Calibration Set-up
 if(use_checkerboeard ~= 0)
@@ -126,8 +136,7 @@ end
 %% Create patch struct
 solid = surf2solid(x_matrix,y_matrix,z_matrix,'ELEVATION',0);
 tic 
-% TODO remove comment (%)
-%solid = reducepatch(solid,stl_compression);
+solid = reducepatch(solid,stl_compression);
 disp('-Patch Reduction');
 toc
 
@@ -136,10 +145,9 @@ toc
 
 %% Resized struct
 solid.vertices = solid.vertices*scale;
-
+result = solid;
 %% Create STL file
-% TODO remove comment (%)
-%stlwrite(strcat(stl_file_name, 'stl'),solid);
+stlwrite(strcat(stl_file_name, 'stl'),solid);
 
 %% Display Patch
 figure;

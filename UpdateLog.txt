@@ -2,7 +2,9 @@
 TODO
 * Check for todo in all functions
 * Cutter needs help to do ground limit
-* Do a GUI for matlab friendly user interface to set parameters
+
+#Git V3:
+GUI added
 
 #Git V2:
 smoothing in other axe doesn't work
