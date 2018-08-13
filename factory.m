@@ -7,18 +7,18 @@ function z_matrix = factory(picFormat, folder_name, ...
         finder_object_size, line_object_size, ground_angle_error)
 
 %   FACTORY returns a 2D matrix.
-%   This matrix contains the height from the points from which the lane on
-%   each image consists of.
+%   This matrix contains in each cell the hight position of the line on the
+%   image for every row in every picture taken.
 %
 %   - picFormat: what format pictures are stored in. 'png' 'jpg'...
-%   - folder_name: folder name containing image sequence. Image named chronologicaly
+%   - folder_name: folder name containing image sequence. Image named chronologically
 %   - img_rotation: how many times image are rotated
 %   - activate_smooth: is surfaced smoothed out
 %   - smooth_factor: how strong is it smoothed
 %   - contrast_logical: used by imbinarize function
-%   - inverse_height: needs to be avtivated if line hitting the item is higher on image
+%   - inverse_height: needs to be activated if line hitting the item is higher on image
 %   - ground_height_factor: in how many slices histogram is cut
-%   - filling_method: what method is used to restor missing data in matrix
+%   - filling_method: what method is used to restore missing data in matrix
 %     Fill method must be 'constant', 'previous', 'next', 'nearest', 'linear', 'spline', or 'pchip'
 %   - limiter_ponderation: used by limiter function
 %   - limiter_area: used by limiter function
@@ -48,19 +48,19 @@ if(no_of_img == 0)
 end
 
 %% Removing unusable images
-% This part removes all images at start of sequenz that are balck or do not
+% This part removes all images at start of sequence that are black or do not
 % have enough laser line in them to be relevant.
 for current_img_no = 1:no_of_img                                            % Go through all the images in directory
     fullFileName = fullfile(picFolder, picFiles(current_img_no).name);      % Getting current image in directory
     current_img = imread(fullFileName);                                     % Load current image
     
     % Process image from rgb to binarize 
-	diff_im = rgb2binarize(current_img, contrast_logical);
+	diff_im = rgb2binarize(current_img, contrast_logical, 0, 0);
     diff_im = bwareaopen(diff_im,line_object_size);                         % Min. size of object
     logical_map = logical(diff_im);                                         % Convert to logical
     objects = regionprops(logical_map, 'Centroid');                         % Store information
     
-    % Check if there are more then n objects found on image
+    % Check if there are more than n objects found on image
     if(length(objects) < 10)                                              
         delete(fullFileName);
     else
@@ -71,37 +71,30 @@ end
 
 %% Check laser angle
 % First few images are used to define laser rotation (angle) correction
+% Get laser angle from images
 laser_corr_angle = linepic2angle(nmr_img_check, picFolder, picFiles, ...
                  laser_correction_object_no, contrast_logical, ...
-                 line_object_size, img_rotation);             % Get laser angle from images
-
-%% Devine ground on images
-% Get infomration on first few images to define at what hight the ground is
+                 line_object_size, img_rotation);           
+             
+%% Define ground on images
+% Get information on first few images to define at what hight the ground is
 correction_img_array = NaN(1,nmr_img_check); 
 for image_nbr = 1:nmr_img_check
-    firstpic_name = fullfile(picFolder, picFiles(image_nbr).name);  % Getting current file in directory
-    current_img = imread(firstpic_name);                              % Load image
-    
-    % Rotate image n times clockwise
-    for rotations = 1:img_rotation       
-        current_img = imrotate(current_img,-90,'bilinear');             % Rotating image by 90° clockwise
-    end
-    
-    % Laser rotation angle correction if laser wasn't horizontal
-    current_img = imrotate(current_img,laser_corr_angle,'bilinear');
-    
+    firstpic_name = fullfile(picFolder, picFiles(image_nbr).name);  		% Getting current file in directory
+    current_img = imread(firstpic_name);                              		% Load image
+       
     % Process image from rgb to binarize 
-	diff_im = rgb2binarize(current_img, contrast_logical);
+	diff_im = rgb2binarize(current_img, contrast_logical, img_rotation, laser_corr_angle);
     
-    diff_im = bwareaopen(diff_im, line_object_size);                  % Min. size of object
-    logical_map = logical(diff_im);                                 % Convert to logical
+    diff_im = bwareaopen(diff_im, line_object_size);                  		% Min. size of object
+    logical_map = logical(diff_im);                                 		% Convert to logical
     objects = regionprops(logical_map, 'Centroid');
 
     % Creating array of doubles from all centroid
-    allCentroids = [objects.Centroid];                                      % Splitt cell up and creat array
+    allCentroids = [objects.Centroid];                                      % Split cell up and create array
     yCentroids = allCentroids(2:2:end);                                     % Store every second value starting at 2
     
-    correction_img_array(image_nbr) = mean(yCentroids);               % Use the mean of all the different angles calculated
+    correction_img_array(image_nbr) = mean(yCentroids);               		% Use the mean of all the different angles calculated
 end
 laser_ground_img = mean(correction_img_array);    % Position of laser hitting ground on image
 
@@ -110,13 +103,8 @@ for current_img_no = 1:no_of_img                                            % Go
 	fullFileName = fullfile(picFolder, picFiles(current_img_no).name);      % Getting current image in directory
     current_img = imread(fullFileName);                                     % Load current image
     
-    % Rotate image n times clockwise
-    for rotations = 1:img_rotation
-        current_img = imrotate(current_img,-90,'bilinear'); 
-    end
-    
-    % Laser rotation angle correction if laser wasn't horizontal
-    current_img = imrotate(current_img,laser_corr_angle,'bilinear');
+    % Process image from rgb to binarize 
+	diff_im = rgb2binarize(current_img, contrast_logical, img_rotation, laser_corr_angle);
     
 	img_y_length = size(current_img,1);                                     % Get height of image
     no_of_strips = size(current_img,2);                                     % Get width of image
@@ -126,9 +114,6 @@ for current_img_no = 1:no_of_img                                            % Go
         z_matrix = NaN(no_of_strips,no_of_img); 
     end
     
-    % Process image from rgb to binarize 
-	diff_im = rgb2binarize(current_img, contrast_logical);
-
     % Find laser center position in every strip
     for current_strip = 1:no_of_strips                                      % Go through all slices of an image
         map_strip = diff_im(1:img_y_length,current_strip:current_strip);    % Load strip of current image
@@ -138,8 +123,8 @@ end
 
 %% Cut NaNs from matrix
 % Remove row from matrix where nothing was found
-% This is exuivalent to remove border left and right on every image if on
-% same strip nothing was found in any sequenz image
+% This is equivalent to remove border left and right on every image if on
+% same strip nothing was found in any sequence image
 
 % Matrix up to down check
 % Check if all values are NaN
@@ -153,24 +138,23 @@ while(nnz(~isnan(z_matrix(size(z_matrix,1),:))) == 0)
     z_matrix(size(z_matrix,1), :) = [];
 end
 
-% Controll if matrix was empty
+% Control if matrix was empty
 if(isempty(z_matrix))
     error('Matrix is empty, no item found');
 end
 
-%% Adding random points inmatrix 
+%% Adding random points in matrix 
 % random points at random position in matrix to test filter
 % what percentage of total values are randomized at random position
 % it is possible that same cell is randomized multiple times
 if(activate_errors ~= 0)
     max_limit = round(max(max(z_matrix)));
     for row = 1:(size(z_matrix,1)*size(z_matrix,2))*error_percentage/100
-        % change between + and - to change inclenison
         z_matrix(randi(size(z_matrix,1)),randi(size(z_matrix,2))) = randi(max_limit);
     end
 end
 
-%% Remove isolatet points
+%% Remove isolate points
 % Remove spice values that don't make sense
 z_matrix = limiter(z_matrix, limiter_ponderation, limiter_area);
 
@@ -193,11 +177,12 @@ z_matrix = medfilt2(z_matrix);
 z_matrix(z_matrix == 0) = NaN;
 z_matrix = fillmissing(z_matrix,filling_method);    % Replaces all NaNs
 
-%% Inverse matrix if ground item is upside down in matrix
-% If ground has higher value then item hight matrix needs to be inverted.
-% else when pulling to ground everything gona be flatend
+%% Inverse matrix if item is upside down in matrix
+% If ground value higher than average value of matrix invert matrix.
+% Would result in same as user inverting every image by 180°
+% But make is user-friendly
 
-% Finde average hight of matrix
+% Find average hight of matrix
 height_matrix = mean(mean(z_matrix));
 
 % Inverse height if matrix average height is below ground
@@ -211,34 +196,33 @@ end
 temp1 = size(z_matrix,1);
 temp2 = size(z_matrix,2);
 
-% Smooth methodes: moving, lowess, loess, sgolay, rlowess, rloess
+% Smooth methods: moving, lowess, loess, sgolay, rlowess, rloess
 z_matrix = smooth(z_matrix,smooth_factor,'moving'); % Smoothing of matrix
 z_matrix = reshape(z_matrix,temp1,temp2);           % Convert array back to matrix
 
 % If smoothing created negative values replace them by 0
 z_matrix(z_matrix < 0) = 0;
 
-%% Artificaly creating ground angle
+%% Artificial creating ground angle
 if(activate_errors ~= 0)
     for column = 1:size(z_matrix,2)
         for row = 1:size(z_matrix,1)
-            % change between + and - to change inclenison
             z_matrix(row,column) = z_matrix(row,column) - ground_angle_error*column;
         end
     end
 end
 
 %% Removing diagonal on ground X
-% Removing digonal on X axe of ground.
-z_matrix = ground_balancer(z_matrix);
+% Removing diagonal on X axe of ground.
+z_matrix = ground_balancer(z_matrix, nmr_img_check);
 
 %% Put object to ground 
-grounding_correction = mean(z_matrix(1,:));                 % ground defined by average value from first row in matrix
-z_matrix = z_matrix - grounding_correction;                       % Remove it from all values in matrix to make it the new ground
-z_matrix(z_matrix < 0) = 0;                                     % Remove all negative values
+grounding_correction = mean(z_matrix(1,:));     			% ground defined by average value from first row in matrix
+z_matrix = z_matrix - grounding_correction;                 % Remove it from all values in matrix to make it the new ground
+z_matrix(z_matrix < 0) = 0;                        			% Remove all negative values
 
-%% Cutting exessiv border from z_matrix
-% Cut of border so there are only that many rows & colums with NAN
+%% Cutting excessive border from z_matrix
+% Cut of border so there are only that many rows & columns with NAN
 ground_cutter_limit = 0;
 
 for row = 1:nmr_img_check
@@ -246,4 +230,4 @@ for row = 1:nmr_img_check
         ground_cutter_limit = max(z_matrix(row,:));
     end
 end
-z_matrix = cutter(z_matrix, ground_cutter_limit*3, smooth_factor*5);                      % Pass down the new ground limit to the cutter
+z_matrix = cutter(z_matrix, ground_cutter_limit, smooth_factor*2);                      % Pass down the new ground limit to the cutter

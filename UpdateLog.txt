@@ -1,75 +1,75 @@
 ----UPDATE LOG----
-TODO
-* Check for todo in all functions
-* Cutter needs help to do ground limit
 
 #Git V3:
 GUI added
+Include rotate from user and laser angle correction in rgb2binarize
+Edited function descriptions
+Other minor changes
 
 #Git V2:
-smoothing in other axe doesn't work
+Smoothing in other axe doesn't work
 Laser angle correction own function
 Laser correction angle fixed, Object array wasn't sorted correctly
-If scan color reversed option. (removed)
+If scan colour reversed option. (removed)
 Fixed median filter
-Adden second cutter imediatly after creating matrix to remove rows with no relevance
-ground angle correction is recursive
+Added second cutter immediately after creating matrix to remove rows with no relevance
+Ground angle correction is recursive
 
 #Git V1:
-reworked all scripts
+Reworked all scripts
 Ground angle correction is correct now
 
 #Version 11:
-removed option to select number of strips set it default to 1px size
-version 10 took 390sec with stripsize of 1 px removed it's object dedection and created finder function
-now version 11 takes 41sec to find all objects with stripsize of 1px
+Removed option to select number of strips set it default to 1px size
+Version 10 took 390sec with strip size of 1 px removed it's object detection and created finder function
+now version 11 takes 41sec to find all objects with strip size of 1px
 Added a medianfilter to limiter to help him out
-renaming some classes to make more sense
-finder function finished
+Renaming some classes to make more sense
+Finder function finished
 
 #Version 10:
-grayscaling full image befor cutting into strips
-same with binarizing and logical map
-improved processingspeed by 30%
+Grayscaling full image before cutting into strips
+Same with binarizing and logical map
+Improved processing speed by 30%
 
 #Version 9:
-improved Limiter code, added recursivity of function
-looked deeper into object selection and now it makes better result as well as "cleaner" code
-cutter was not working corectly. made of function for cutter and fixed it
-length calc corrected. but needs to be adapten if motor changes
-displaying stl now, removed surf plot
+Improved Limiter code, added resistivity of function
+Looked deeper into object selection and now it makes better result as well as "cleaner" code
+Cutter was not working correctly. made of function for cutter and fixed it
+Length calculation fixed, but needs to be adapted if motor changes
+Displaying stl now, removed surf plot
 
 #Version 8:
 Image removal amelioration
-fixing putting model to ground
-ground angle correction fix, positiv and negativ angles
+Fixing putting model to ground
+Ground angle correction fix, positive and negative angles
 Changed code selecting object to store in matrix. Now bigger white area is used. code is cleaner but 3D result is less good
 Limiter to remove spikes implemented
 
 #Version 7:
-conveyer speed calculator added
-Calibration folder managment amelioration
-some error managment
-correction hight calculation
-matlab removes image where nothing is to be seen
-moving object to new "ground"
-if ground was not not flat fixed that.
-Images can be rotatet if camera was mounted wrong
+Conveyor speed calculator added
+Calibration folder management amelioration
+Some error management
+Correction hight calculation
+Matlab removes image where nothing is to be seen
+Moving object to new "ground"
+If ground was not not flat fixed that.
+Images can be rotated if camera was mounted wrong
 Laser angle correction (laser not horizontal fixed)
 
 #Version 6:
 Changing way to work on array so less compression of is needed
 Compression removed
 Selection between Checker-board calibration or Infos from Camera Data-sheet
-smoothing in x & y axes
-module folder name where images are stored
+Smoothing in x & y axes
+Module folder name where images are stored
 
 #Version 5:
-Restructurisation of Scripts
-New better way to creat STL file
-Removing option to creat border surf is without and STL is full faces
+Scripts structure reworked
+New better way to create STL file
+Removing option to create border surf is without and STL is full faces
 Artificial scale factor can be added on model
-Matrixes converted from fps to mm and from px to mm
+Matrices dimensions converted from fps to mm and from px to mm accordingly
 Augmented resolution of x and y dimensions
 Compressing Patch
 
@@ -77,11 +77,10 @@ Compressing Patch
 Adding Calibration all needed infos for that are given as parameters to script
 Smooth out surface of plot if necessary no spiky surface
 
-
 #Version 3:
 Strips can now be 1 Pixel large
 Other Optimisation for Strips
-Changed Reconstruction from cutting of border to get to IMG size to recognizing Object and triming till there
+Changed Reconstruction from cutting of border to get to IMG size to recognizing Object and trimming till there
 Option to add Border to Object or not
 
 #Version 2:
@@ -90,16 +89,16 @@ Creating STL file
 
 #Version 1.2:
 Added timer to know how long calculation took
-Padding added to IMG so strips are multiple of IMG no more need for reconstuction for last strip
+Padding added to IMG so strips are multiple of IMG no more need for reconstruction for last strip
 Trimming of padding if there are to many null values
 
 #Version 1:
 Reconstruction if last strip didn't went till end
 Give border and fill missing
-Creat surf of 3 matrixs
+Create surf of 3 matrices
 
 Test:
-Reading colored IMG
-Recognizes shape of certain color in IMG
+Reading coloured IMG
+Recognizes shape of certain colour in IMG
 Gets position of shape
 

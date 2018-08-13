@@ -1,11 +1,8 @@
 function centroid = finder(array_to_check, min_size)
-%   FINDER detects the centre of longest object in a row.
-%   Row needs to be logical, meaning only consisting of ones and zeros
-%   The Function goes trough array looking for longest sequence of ones.
-%   Once the longes sequence is found the finder returns the index of the
-%   sequence. The index is the position of the center of the sequence in
-%   the array.
-%   NaN is returned if no sequenz was found.
+%   FINDER detects the centre of longest object in a logical array and
+%   returns its position in the array. The object is the longest sequenz of
+%   1 in array
+%   NaN is returned if no center was found.
 %
 %   Author: Daniel Briguet, 18-06-2018
 
@@ -25,12 +22,12 @@ for position = 1:size(array_to_check,1)
         current_size = 0;
     end
     
-    % Check if current size of sequence is larger largest one untile now
+    % Check if current size of sequence is larger than largest one until now
     if(current_size > size_largest)
         % Set new largest size if bigger
         size_largest = current_size;
         
-        % Update return index (centrois) to new largest sequence
+        % Update return index (centroids) to new largest sequence
         centroid = position - current_size/2;
     end
 end

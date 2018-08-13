@@ -21,7 +21,7 @@ function result_matrix = cutter(z_matrix, ground_cutter_limit, smooth_factor)
 %% Getting corner position of item in matrix
 % First step in function is to get corner position in matrix where a values
 % are greater than limit.
-% To do that 4 values are beeing looked for:
+% To do that 4 values are being looked for:
 %   - First row having a value above limit
 %   - Last row having a value above limit
 %   - First column having a value above limit
@@ -31,16 +31,16 @@ function result_matrix = cutter(z_matrix, ground_cutter_limit, smooth_factor)
 x_start = 0;
 y_start = 0;
 
-% Copie matrix that will be cutt later on and send back
+% Copy matrix that will be cut later on and send back
 backup_matrix = z_matrix;
 
 %% Smoothing
 % Extra smoothing to remove perturbation on ground.
-% alows to finde limit to cut behind some "too high" points on ground
+% allows to find limit to cut behind some "too high" points on ground
 temp1 = size(z_matrix,1);
 temp2 = size(z_matrix,2);
 
-% Smooth methodes: moving, lowess, loess, sgolay, rlowess, rloess
+% Smooth methods: moving, lowess, loess, sgolay, rlowess, rloess
 z_matrix = smooth(z_matrix,smooth_factor,'moving'); % Smoothing of matrix
 z_matrix = reshape(z_matrix,temp1,temp2);           % Convert array back to matrix
 
@@ -80,9 +80,9 @@ end
 
 % Check if there was item on image lower then given limit
 if(~exist('y_dest','var'))
-    error('Error: Nothing was dedected on any image');
+    error('Error: Nothing was detected on any image');
 end
 
-%% Rezising matrix to new dimensions at given location
+%% Resizing matrix to new dimensions at given location
 % z_matrix(column_start_coord:column_dest_coord,row_start_coord:row_dest_coord);
 result_matrix = backup_matrix(y_start:y_dest,x_start:x_dest); 

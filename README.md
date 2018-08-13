@@ -16,7 +16,7 @@ To run these Matlab scripts following add-ons are required
 
 * **Daniel Briguet** - *Initial work*
 
-## Acknowledgments
+## Acknowledgements
 
 Special thanks to the following people for helping me realize this project:
 * Djano Kandaswamy, responsible professor, HEVs
