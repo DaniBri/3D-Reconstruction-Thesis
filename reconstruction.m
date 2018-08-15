@@ -19,6 +19,7 @@ function result = reconstruction(FolderNameSequenze, ImageFormat, NameSTLFile, .
 % Author: Daniel Briguet, 18-06-2018
 
 clc
+tic
 disp('-Reconstruction Started');
 
 %% Settings
@@ -95,7 +96,9 @@ end
 
 %% Get Z_matrix
 % Transmit settings and run image processing
+total_time = toc;
 tic
+disp('-Image Processing...');
 z_matrix = factory(picFormat, folder_name, ...
         img_rotation, smooth_factor, ... 
         contrast_logical, filling_method, ...
@@ -105,8 +108,9 @@ z_matrix = factory(picFormat, folder_name, ...
         finder_object_size, line_object_size, ground_angle_error);
 no_of_img = size(z_matrix,2);               % Dimension 1 from z_matrix gives amount of image taken
 img_width = size(z_matrix,1);               % Image width not item width
-disp('-Image Processing done');
+disp('-Processing Done');
 toc
+total_time = total_time+toc;
 
 %% Z_MATRIX correction
 % height = length/tan(angle)
@@ -125,6 +129,7 @@ item_length = (no_of_img/camera_fps)* conveyor_speed;   % Calculate length of it
 item_width = img_width*relation_px_mm;                  % Convert from width in pixel to mm      
 disp('-Dim corrections done');
 toc
+total_time = total_time+toc;
 %% Creation Y/X Matrices
 % Creation of X matrix going from 0 to item length row after row
 tic
@@ -140,16 +145,17 @@ y_matrix = imresize(y_matrix, [img_width no_of_img], 'nearest');
 if(mirror_Y_axe ~= 0)
     y_matrix = item_width-y_matrix;
 end
-disp('-X%Y matrices done');
+disp('-X&Y matrices done');
 toc
-
+total_time = total_time+toc;
 %% Create patch struct
 tic
+disp('-Patch reduction started');
 solid = surf2solid(x_matrix,y_matrix,z_matrix,'ELEVATION',0);
 if(stl_compression < 1)
     solid = reducepatch(solid,stl_compression);
 end
-disp('-Patch reduction');
+disp('-Done');
 toc
 
 %% Resized structure
@@ -177,3 +183,6 @@ zlabel(' Z [mm]')   % height of item
 % Fix the axes scaling, and set view angle
 view([-135 35]);
 axis('image');
+total_time = total_time+toc;
+disp('-End of script');
+disp(strcat('Total time used',{' '}, num2str(round(total_time,2)), 's'));

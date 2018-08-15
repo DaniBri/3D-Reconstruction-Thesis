@@ -144,9 +144,8 @@ if(isempty(z_matrix))
 end
 
 %% Adding random points in matrix 
-% random points at random position in matrix to test filter
-% what percentage of total values are randomized at random position
-% it is possible that same cell is randomized multiple times
+% Random points at random position in matrix to test filter
+% IMPORTANT: It is possible that same cell is randomized multiple times
 if(activate_errors ~= 0)
     max_limit = round(max(max(z_matrix)));
     for row = 1:(size(z_matrix,1)*size(z_matrix,2))*error_percentage/100
@@ -212,7 +211,7 @@ if(activate_errors ~= 0)
     end
 end
 
-%% Removing diagonal on ground X
+%% Removing diagonal on ground
 % Removing diagonal on X axe of ground.
 z_matrix = ground_balancer(z_matrix, nmr_img_check);
 
