@@ -23,6 +23,6 @@ Special thanks to the following people for helping me realize this project:
 * Bernard Loehr, expert, HE-ARC
 * Jonathan Michel, student & colleague, HEVs
 
-Following functions were given by following people:
-* Function: surf2solid.m	Author: Sven Holcombe
-* Function: stlwrite.m	Author: Sven Holcombe
+Following functions were given by provided by Sven Holcombe:
+* surf2solid.m
+* stlwrite.m
