@@ -186,3 +186,4 @@ axis('image');
 total_time = total_time+toc;
 disp('-End of script');
 disp(strcat('Total time used',{' '}, num2str(round(total_time,2)), 's'));
+

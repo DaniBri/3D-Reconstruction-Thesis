@@ -1,6 +1,6 @@
 function angle = linepic2angle(nmr_img_check, picFolder, picFiles, ...
                  laser_correction_object_no, contrast_logical, ...
-                 line_object_size, img_rotation)
+                 line_object_size, img_rotation, recursive_laser_correction_angle)
 %   LINEPIC2ANGLE returns the average line angle on a series of pictures.
 %   Using start and end of line to determin angle.
 %
@@ -8,6 +8,8 @@ function angle = linepic2angle(nmr_img_check, picFolder, picFiles, ...
 %   cor_object_size: minimal size of such an object
 %   laser_correction_object_no: how much "line" is loock for at start and
 %   end of line.
+%   recursive_laser_correction_angle gives some angle correction. This
+%   variable should be initialized at 0.
 %
 %   Author: Daniel Briguet, 18-06-2018
 
@@ -17,7 +19,7 @@ for image_nbr = 1:nmr_img_check
     current_img = imread(firstpic_name);                           	% Load image
     
     % Process image from rgb to binarize 
-	diff_im = rgb2binarize(current_img, contrast_logical, img_rotation, 0);
+	diff_im = rgb2binarize(current_img, contrast_logical, img_rotation, recursive_laser_correction_angle);
     
     diff_im = bwareaopen(diff_im,line_object_size);               	% Min. size of object
     logical_map = logical(diff_im);                                 % Convert to logical
@@ -47,4 +49,14 @@ for image_nbr = 1:nmr_img_check
     end
     correction_img_array(image_nbr) = mean(correction_array);                               	% Use the mean of all the different angles calculated
 end
-angle = mean(correction_img_array);
+
+% If angle is lower then 0.01 breack out of loop
+if(abs(mean(correction_img_array)) >= 0.01)
+    angle = mean(correction_img_array)+...
+            linepic2angle(nmr_img_check, picFolder, picFiles, ...
+            laser_correction_object_no, contrast_logical, ...
+            line_object_size, img_rotation, ...
+            mean(correction_img_array) + recursive_laser_correction_angle);
+else
+    angle = mean(correction_img_array);
+end

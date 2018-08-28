@@ -74,7 +74,7 @@ end
 % Get laser angle from images
 laser_corr_angle = linepic2angle(nmr_img_check, picFolder, picFiles, ...
                  laser_correction_object_no, contrast_logical, ...
-                 line_object_size, img_rotation);           
+                 line_object_size, img_rotation, 0);           
              
 %% Define ground on images
 % Get information on first few images to define at what hight the ground is
